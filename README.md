@@ -27,12 +27,6 @@ PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](
 * `!pollsetup` Sets up the polling capabilities of the bot. This command can only be run by a server administrator.
 * `!startpoll` Starts the process of creating a poll. It will ask a few questions relating to the creation of the poll, and once all questions have been answered, a poll is started.
 
-## Discord Server Setup
-
-1. [Click here](https://discord.com/api/oauth2/authorize?client_id=787357691637923864&permissions=8&scope=bot) to invite the bot to your server.
-2. Users can now begin running the commands above.
-   1. If you want to set up polling capabilities and are a server administrator, you can run `!pollsetup`.
-
 ## Building From Source
 
 1. Clone the project and load in Visual Studio.
