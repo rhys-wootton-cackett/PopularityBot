@@ -20,9 +20,6 @@ namespace CTGPPopularityTracker
 
         private static void Main(string [] args)
         {
-
-            // tracker.GetTracksSortedPopularity().ForEach(kpv => 
-            //     Console.WriteLine("Track: {0}, Popularity: {1}", kpv.Key.Item1, kpv.Value));
             MainAsync().GetAwaiter().GetResult();
         }
 
