@@ -13,7 +13,7 @@ namespace CTGPPopularityTracker
 {
     public class PopularityTracker
     {
-        public Dictionary<(string, string), int> Tracks { get; }
+        public Dictionary<(string, string), (int, int)> Tracks { get; }
 
         public DateTime LastUpdated { get; set; }
         public const string CtgpTtLink = "http://tt.chadsoft.co.uk/ctgp-leaderboards.json";
@@ -21,7 +21,7 @@ namespace CTGPPopularityTracker
 
         public PopularityTracker()
         {
-            Tracks = new Dictionary<(string, string), int>();
+            Tracks = new Dictionary<(string, string), (int, int)>();
         }
 
         /// <summary>
@@ -55,24 +55,27 @@ namespace CTGPPopularityTracker
             //Add the track and SHA1 of the track to the Tracks dictionary, and 
             //for every entry, increase its popularity accordingly.
             Console.WriteLine("Adding tracks to dictionary, please wait...");
-            foreach (var trackJson in jsonTt.leaderboards)
-            {
-                string trackName = trackJson.name;
-                string trackId = trackJson.trackId;
-
-                trackId = trackId.ToLower();
-
-                var track = (trackName, trackID: trackId);
-
-                if (!Tracks.ContainsKey(track))
+            if (jsonTt != null)
+                foreach (var trackJson in jsonTt.leaderboards)
                 {
-                    Tracks.Add(track, (int)trackJson.popularity);
+                    string trackName = trackJson.name;
+                    string trackId = trackJson.trackId;
+
+                    trackId = trackId.ToLower();
+
+                    var track = (trackName, trackID: trackId);
+
+                    if (!Tracks.ContainsKey(track))
+                    {
+                        Tracks.Add(track, (trackJson.popularity, 0));
+                    }
+                    else
+                    {
+                        var newPopularity = Tracks[track];
+                        newPopularity.Item1 += (int) trackJson.popularity;
+                        Tracks[track] = newPopularity;
+                    }
                 }
-                else
-                {
-                    Tracks[track] += (int)trackJson.popularity;
-                }
-            }
         }
 
         /// <summary>
@@ -119,7 +122,9 @@ namespace CTGPPopularityTracker
                     //If found using the track name, then adjust the value and restart loop
                     if (!(trackKey.Item1 == null && trackKey.Item2 == null))
                     {
-                        Tracks[trackKey] += trackPopularity;
+                        var wiimmPopularityTrack = Tracks[trackKey];
+                        wiimmPopularityTrack.Item2 = trackPopularity;
+                        Tracks[trackKey] = wiimmPopularityTrack;
                         continue;
                     }
 
@@ -146,7 +151,9 @@ namespace CTGPPopularityTracker
                             key.Item2 != null && hash.Contains(key.Item2)))
                         .Where(hashKey => hashKey.Item1 != null || hashKey.Item2 != null))
                     {
-                        Tracks[hashKey] += trackPopularity;
+                        var wiimmPopularitySHA = Tracks[hashKey];
+                        wiimmPopularitySHA.Item2 = trackPopularity;
+                        Tracks[hashKey] = wiimmPopularitySHA;
                     }
                 }
 
@@ -196,7 +203,12 @@ namespace CTGPPopularityTracker
 
             // Sort all tracks
             var tracksSorted = Tracks.ToList();
-            tracksSorted.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+            tracksSorted.Sort((pair1, pair2) =>
+            {
+                var pair2Sum = pair2.Value.Item1 + pair2.Value.Item2;
+                var pair1Sum = pair1.Value.Item1 + pair1.Value.Item2;
+                return pair2Sum.CompareTo(pair1Sum);
+            });
 
             //Put list into a string separated by new lines (two spaces)
             var sb = new StringBuilder();
@@ -205,14 +217,22 @@ namespace CTGPPopularityTracker
             {
                 for (var i = startPoint; i > startPoint - count; i--)
                 {
-                    sb.Append($"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value})\n");
+                    //Get the sum of the popularity
+                    var popularitySum = tracksSorted[i - 1].Value.Item1 + tracksSorted[i - 1].Value.Item2;
+                    var popularityBreakdown =
+                        $"`{tracksSorted[i - 1].Value.Item1} + {tracksSorted[i - 1].Value.Item2}`";
+                    sb.Append($"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({popularitySum}) {popularityBreakdown}\n");
                 }
             }
             else
             {
                 for (var i = startPoint; i < startPoint + count; i++)
                 {
-                    sb.Append($"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value})\n");
+                    //Get the sum of the popularity
+                    var popularitySum = tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2;
+                    var popularityBreakdown =
+                        $"`{tracksSorted[i].Value.Item1} + {tracksSorted[i].Value.Item2}`";
+                    sb.Append($"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({popularitySum}) {popularityBreakdown}\n");
                 }
             }
 
@@ -236,7 +256,13 @@ namespace CTGPPopularityTracker
             for (var i = 0; i < Tracks.Count; i++)
             {
                 if (!tracksSorted[i].Key.Item1.ToLower().Contains(searchParam.ToLower())) continue;
-                sb.Append($"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value})\n");
+
+                //Get the sum of the popularity
+                var popularitySum = tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2;
+                var popularityBreakdown =
+                    $"`{tracksSorted[i].Value.Item1} + {tracksSorted[i].Value.Item2}`";
+                sb.Append($"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({popularitySum}) {popularityBreakdown}\n");
+
                 count++;
 
                 if (count == 25) break;

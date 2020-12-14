@@ -17,7 +17,7 @@ namespace CTGPPopularityTracker
 
         //DISCORD CONSTS
         private const string PopularityInfo =
-            "*Popularity is calculated using the sum of the popularty of a track in CTGP Revolution Time Trials, along with the number of times the track has been played on WiimmFi in the past month.*";
+            "*Popularity is calculated using the sum of the popularty of a track in CTGP Revolution Time Trials, along with the number of times the track has been played on WiimmFi in the past month.\n\nThe values next to the sum of the popularity shows the comparison of Time Trial popularity against WiimmFi popularity.*";
         private readonly DiscordColor _botEmbedColor = new DiscordColor("#FE0002");
 
         //FIELDS
