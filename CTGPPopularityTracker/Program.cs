@@ -27,7 +27,7 @@ namespace CTGPPopularityTracker
         {
             //Start by gathering data, and set this to run every 60 minutes
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(60);
+            var periodTimeSpan = TimeSpan.FromMinutes(30);
 
             var timer = new System.Threading.Timer(async (e) =>
             {
@@ -57,15 +57,6 @@ namespace CTGPPopularityTracker
 
             await discord.ConnectAsync();
             await Task.Delay(-1);
-        }
-
-        private async Task CmdErroredHandler(CommandsNextExtension _, CommandErrorEventArgs e)
-        {
-            var failedChecks = ((ChecksFailedException)e.Exception).FailedChecks;
-            foreach (var unused in failedChecks)
-            {
-                await e.Context.RespondAsync("You cannot use this command.");
-            }
         }
     }
 }

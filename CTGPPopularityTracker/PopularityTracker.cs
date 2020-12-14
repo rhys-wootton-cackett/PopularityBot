@@ -17,7 +17,7 @@ namespace CTGPPopularityTracker
 
         public DateTime LastUpdated { get; set; }
         public const string CtgpTtLink = "http://tt.chadsoft.co.uk/ctgp-leaderboards.json";
-        public const string WiimmFiLink = "https://wiimmfi.de/stats/track/wv/ctgp?p=std,c0,0,";
+        public const string WiimmFiLink = "https://wiimmfi.de/stats/track/mv/ctgp?p=std,c0,0,";
 
         public PopularityTracker()
         {

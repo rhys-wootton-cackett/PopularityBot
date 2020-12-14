@@ -27,8 +27,7 @@ namespace CTGPPopularityTracker
          * SHOW COMMANDS
          */
 
-        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"),
-         Cooldown(1, 30, CooldownBucketType.User)]
+        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP")]
         public async Task ShowTopCommand(CommandContext ctx)
         {
             //Get the top 10
@@ -50,8 +49,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"),
-         Cooldown(1, 30, CooldownBucketType.User)]
+        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP")]
         public async Task ShowBottomCommand(CommandContext ctx)
         {
             //Get the top 10
@@ -81,8 +79,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"),
-         Cooldown(1, 30, CooldownBucketType.User)]
+        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP")]
         public async Task ShowTopAndBottomCommand(CommandContext ctx)
         {
             //Get the top 10 and bottom 10 
@@ -106,8 +103,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)"),
-         Cooldown(1, 30, CooldownBucketType.User)]
+        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)")]
         public async Task ShowTracksFromSpecificSetCommand(CommandContext ctx, 
             [Description("The starting point of the search")]int startPoint, 
             [Description("The amount of tracks you want to list")]int count)
@@ -157,8 +153,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("getpopularity"), Description("Finds the popularity of tracks which share the same search parameter."),
-         Cooldown(1, 10, CooldownBucketType.User)]
+        [Command("getpopularity"), Description("Finds the popularity of tracks which share the same search parameter.")]
         public async Task GetTracksPopularityCommand(CommandContext ctx,
             [RemainingText, Description("The search parameter")]
             string param)
