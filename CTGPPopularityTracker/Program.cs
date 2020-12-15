@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -17,6 +18,7 @@ namespace CTGPPopularityTracker
     public class Program
     {
         public static PopularityTracker Tracker = new PopularityTracker();
+        private static string SettingsFile;
 
         private static void Main(string [] args)
         {
@@ -25,9 +27,17 @@ namespace CTGPPopularityTracker
 
         private static async Task MainAsync()
         {
-            //Start by gathering data, and set this to run every 60 minutes
+            //Ask to locate the settings file to be used for polling
+            do
+            {
+                Console.WriteLine("Where is the poll settings file located: ");
+                SettingsFile = Console.ReadLine();
+            } while (!File.Exists(@$"{SettingsFile}"));
+
+
+            //Start by gathering data, and set this to run every 55 minutes
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(30);
+            var periodTimeSpan = TimeSpan.FromMinutes(55);
 
             var timer = new System.Threading.Timer(async (e) =>
             {
@@ -57,6 +67,32 @@ namespace CTGPPopularityTracker
 
             await discord.ConnectAsync();
             await Task.Delay(-1);
+        }
+
+        /// <summary>
+        /// Finds poll settings for a specific guild.
+        /// </summary>
+        /// <param name="guild">The guild id</param>
+        /// <returns>The poll settings for that guild in the form of an array.</returns>
+        public static ulong[] GetPollSettings(ulong guild)
+        {
+            //Load the settings file
+            var f = new StreamReader(@$"{SettingsFile}");
+            string line;
+
+            while ((line = f.ReadLine()) != null)
+            {
+                //Split and see if the guilds match
+                var pollAttr = line.Split(',').Select(ulong.Parse).ToArray();
+                if (pollAttr[0] == guild) return pollAttr;
+            }
+
+            return null;
+        }
+
+        public static void WritePollSettings(string line)
+        {
+            File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
         }
     }
 }
