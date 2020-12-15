@@ -35,9 +35,9 @@ namespace CTGPPopularityTracker
             } while (!File.Exists(@$"{SettingsFile}"));
 
 
-            //Start by gathering data, and set this to run every 60 minutes
+            //Start by gathering data, and set this to run every 55 minutes
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(30);
+            var periodTimeSpan = TimeSpan.FromMinutes(55);
 
             var timer = new System.Threading.Timer(async (e) =>
             {
