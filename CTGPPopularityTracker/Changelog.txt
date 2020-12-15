@@ -1,0 +1,22 @@
+﻿-----------------------------------------------------------
+						CHANGELOG
+-----------------------------------------------------------
+v1.1 - 
+-----------------
+* The algorithm for getting WiimmFi popularity has been improved, and now searches exclusively using a tracks SHA1 hash, making it more reliable. However, this comes at a cost of the bot sending a load more requests to the WiimmFi website, so bot updates will take longer (set to update now every 55-60 minutes).
+* The search algorithm has been made harsher. It now only searches for specific words in a track. Single letter searches yeild no results now. This should fix a search for 'DS' showing other tracks containg words such as "grounds".
+
+* '!show' commands now show the sum of popularity by showing its Time Trial and WiimmFi popularity in that order e.g. "N64 Rainbow Road (38) [29 + 9]".
+* '!getpopularity' has been changed to '!find'. Now you don't have to type in so much!
+
+* NEW COMMAND: '!explainpop' will explain how popularity is calculated. I've removed it from all '!show' commands as it was starting to clog up the embed in my opinion.
+* NEW COMMAND: All commands have overloads for only ranking by Time Trials and WiimmFi popularity. To do these, use 'tt' for Time Trials or 'wf' for Wiimmfi.
+			   Examples: '!showtop tt'
+						 '!showbottom wf'
+						 '!showtopbottom tt'
+						 '!show 5 15 wf'
+						 '!find gcn tt'
+
+v1.0 - 14/12/2020
+-----------------
+Initial release
