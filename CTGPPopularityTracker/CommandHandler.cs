@@ -22,9 +22,6 @@ namespace CTGPPopularityTracker
 
         private readonly DiscordColor _botEmbedColor = new DiscordColor("#FE0002");
 
-        //FIELDS
-        private DiscordChannel _pollStartChannel, _pollDisplayChannel;
-
         /*
          * EXPLAIN COMMANDS
          */
@@ -40,6 +37,7 @@ namespace CTGPPopularityTracker
 
             await ctx.RespondAsync(null, false, embed);
         }
+
         /*
          * SHOW COMMANDS
          */
@@ -234,6 +232,9 @@ namespace CTGPPopularityTracker
          RequirePermissions(Permissions.Administrator)]
         public async Task RunPollSetupCommand(CommandContext ctx)
         {
+            var pollSB = new StringBuilder();
+            pollSB.Append(ctx.Guild.Id + ",");
+
             //Start by asking for a channel to send poll messages to
             await ctx.RespondAsync(
                 "Hi there! Firstly I need to ask you for a channel for me to " +
@@ -256,7 +257,7 @@ namespace CTGPPopularityTracker
                         return false;
                     }
 
-                    _pollDisplayChannel = channel;
+                    pollSB.Append(channel.Id + ",");
                     successful = true;
                     return true;
 
@@ -284,13 +285,15 @@ namespace CTGPPopularityTracker
                         return false;
                     }
 
-                    _pollStartChannel = channel;
+                    pollSB.Append(channel.Id);
                     successful = true;
                     return true;
 
                 });
             }
 
+            //Save the settings
+            Program.WritePollSettings(pollSB.ToString());
             await ctx.RespondAsync("All done! You have successfully set up polling in PopularityBot. Have fun!");
 
         }
@@ -302,8 +305,11 @@ namespace CTGPPopularityTracker
                 ":brown_square:", ":purple_square:", ":orange_square:" };
             var dayCount = int.MaxValue;
 
+            //Load the right settings for the server
+            var pollSettings = Program.GetPollSettings(ctx.Guild.Id);
+
             //Check they are in the right channel, and if not exit
-            if (ctx.Channel != _pollStartChannel)
+            if (ctx.Channel.Id != pollSettings[2])
             {
                 await ctx.RespondAsync("You do not have permission to start a poll here.");
                 return;
@@ -380,7 +386,7 @@ namespace CTGPPopularityTracker
 
             var fieldString = sb.ToString().Substring(0, sb.Length - 1);
 
-            //Build and submit the poll, then wait!
+            //Build and submit the poll
             var pollEmbed = new DiscordEmbedBuilder()
             {
                 Color = _botEmbedColor,
@@ -397,7 +403,10 @@ namespace CTGPPopularityTracker
             };
 
             pollEmbed.AddField("Tracks to vote on", fieldString);
-            var pollMessage = await _pollDisplayChannel.SendMessageAsync(null, false, pollEmbed);
+
+            //Find the channel to send the poll in and send it
+            var pollChannel = ctx.Guild.Channels[pollSettings[1]];
+            var pollMessage = await pollChannel.SendMessageAsync(null, false, pollEmbed);
 
             //Collect the reactions over the time period
             var reactions = await pollMessage.CollectReactionsAsync(TimeSpan.FromDays(dayCount));
@@ -424,7 +433,7 @@ namespace CTGPPopularityTracker
             };
 
             pollResultsEmbed.AddField("Tracks that were voted on", fieldString);
-            await _pollDisplayChannel.SendMessageAsync(null, false, pollResultsEmbed);
+            await pollChannel.SendMessageAsync(null, false, pollResultsEmbed);
         }
     }
 }
