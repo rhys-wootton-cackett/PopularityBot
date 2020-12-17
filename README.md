@@ -40,7 +40,7 @@ All these commands have overloads for only showing popularity based on Time Tria
 
 1. Clone the project and load in Visual Studio.
 2. Create a new application in the [Discord Developer Portal](https://discord.com/developers/applications) and add a new bot to that application.
-3. CrEate an `App.config` file in the same folder as the `.cs` files, and paste the following:
+3. Create an `App.config` file in the same folder as the `.cs` files, and paste the following:
    ```xml
    <?xml version="1.0" encoding="utf-8" ?>
    <configuration>
@@ -52,7 +52,7 @@ All these commands have overloads for only showing popularity based on Time Tria
 4. Build and run the project
 ## Dependencies
 
-* [DSharpPlus: A .NET Standard library for making bots using the Discord API. (github.com)](https://github.com/DSharpPlus/DSharpPlus)
+* [DSharpPlus: A .NET Standard library for making bots using the Discord API](https://github.com/DSharpPlus/DSharpPlus)
 * [Html Agility Pack](https://html-agility-pack.net/)
 
 ## Current Issues
