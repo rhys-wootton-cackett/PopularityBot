@@ -11,30 +11,36 @@ PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](
 1. Every hour, PopularityBot will connect to the CTGP Revolution Time Trial API and grab the data from the `ctgp-leaderboards` section.
 2. PopularityBot will then store the track’s name and SHA1 hash, along with its popularity score, in a `HashMap`, which allows PopularityBot to map a unique track to a value.
 3. PopularityBot then knows all tracks that are in CTGP Revolution and begins to connect to the WiimmFi statistics page.
-4. Once connected, it scans through each row, seeing if there is a name match in the existing `HashMap` created from the Time Trial API, using either the track name or the SHA1 hash in that row.
-   1. If there is a match, the value stored in the first column next to the name, which shows how many times the track has played in the current month, is added to the existing popularity score.
-   2. If there is no match, PopularityBot loads the track’s unique URL from ct.wiimm.de, and compares the hashes on that page with the one stored in the `HashMap`.
+4. Once connected, it scans through each row, seeing if there is a name match in the existing `HashMap` created from the Time Trial API, using the SHA1 hash.
       1. If there is a match, the value on the main statistics page is added to the existing popularity score (like above.)
       2. If there is no match, the track is not in CTGP Revolution, so we skip it.
 
 ## Commands
+
+### Popularity Commands
 
 * `!showtop` Shows the top 10 tracks in ascending order of popularity.
 * `!showbottom` Shows the bottom 10 tracks in descending order of popularity.
 * `!showtopbottom` Combines the results from the previous two commands into one.
 * `!show <starting_point> <number_of_tracks>` Lists the number of tracks from the starting point specified in ascending order of popularity. The number of tracks has to be between 2 and 25 inclusive.
 * `!getpopularity <search_param>` Lists all tracks containing the search parameter in ascending order of popularity. It stops listing tracks after a 25th track has been found.
+
+All these commands have overloads for only showing popularity based on Time Trials and WiimmFi popularity. This is achieved by adding `wf` or `tt` at the end of each command.
+
+### Poll Commands
+
 * `!pollsetup` Sets up the polling capabilities of the bot. This command can only be run by a server administrator.
 * `!startpoll` Starts the process of creating a poll. It will ask a few questions relating to the creation of the poll, and once all questions have been answered, a poll is started.
+
+### Other Commands
+* `!github` Sends a link to the GitHub repo for PopularityBot.
+* `!donate` Sends a message on how to donate to me to help this project and others I make.
 
 ## Building From Source
 
 1. Clone the project and load in Visual Studio.
-
 2. Create a new application in the [Discord Developer Portal](https://discord.com/developers/applications) and add a new bot to that application.
-
-3. Create an `App.config` file in the same folder as the `.cs` files, and paste the following:
-
+3. CrEate an `App.config` file in the same folder as the `.cs` files, and paste the following:
    ```xml
    <?xml version="1.0" encoding="utf-8" ?>
    <configuration>
@@ -43,9 +49,7 @@ PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](
      </appSettings>
    </configuration>
    ```
-
 4. Build and run the project
-
 ## Dependencies
 
 * [DSharpPlus: A .NET Standard library for making bots using the Discord API. (github.com)](https://github.com/DSharpPlus/DSharpPlus)
@@ -53,8 +57,6 @@ PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](
 
 ## Current Issues
 
-* If the bot goes down for any reason, and is restarted, it will not remember the channels that allow for polls to be sent to and started from.
-  * This can be remedied by running `!pollsetup` again.
 * If the bot goes down for any reason, and is restarted, active polls will no longer be concluded.
   * This can be remedied by either starting a new poll and having users vote again, or count up the results manually when the original poll would have ended.
 
