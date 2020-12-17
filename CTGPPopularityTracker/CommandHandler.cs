@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -20,13 +21,64 @@ namespace CTGPPopularityTracker
         private const string PopularityInfo =
             "*Popularity is calculated using the sum of the popularty of a track in CTGP Revolution Time Trials, along with the number of times the track has been played on WiimmFi in the past month.*";
 
+        private const string DonateInfo =
+            "Hosting this bot costs me money (around $5 a month using DigitalOceans VPS), and whilst I can afford it at the moment, help from people that like and use the bot would be super helpful. All " +
+            "donations would be put straight into the DigitalOcean account, so you can feel safe knowing that the money does go directly to support the bot's hosting and development, along with helping me " +
+            "work on other project to do with CTGP. Don't feel as though you need to donate, but any amount if you can donate would be very appreciated :)";
         private readonly DiscordColor _botEmbedColor = new DiscordColor("#FE0002");
+
+        /*
+         * LINK COMMANDS
+         */
+        [Command("github"), Description("Sends a link to my GitHub page"), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task SendGitHubLinkCommand(CommandContext ctx)
+        {
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = _botEmbedColor,
+                Title = "Check out my source code!",
+                Url = "https://github.com/rhys-wootton/PopularityBot",
+                Thumbnail = new DiscordEmbedBuilder.EmbedThumbnail()
+                {
+                    Url = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+                    Height = 20,
+                    Width = 20
+                }
+            };
+
+            await ctx.RespondAsync(null, false, embed);
+        }
+
+        [Command("donate"),
+         Description(
+             "Sends donation links to help support the development of the bot and other things I (RhysRah) create."),
+         Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task SendDonationLinksCommand(CommandContext ctx)
+        {
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = _botEmbedColor,
+                Title = "Everything helps!",
+                Description = DonateInfo,
+                Footer = new DiscordEmbedBuilder.EmbedFooter()
+                {
+                    Text = $"❤️ Thanks for the support!"
+                }
+            };
+
+            embed.AddField("GitHub Sponsor",
+                "https://github.com/sponsors/rhys-wootton \nThis is a monthly subscription that helps support the development of all my open source projects, including PopularityBot!");
+            embed.AddField("Ko Fi",
+                "https://ko-fi.com/rhyswootton \nThis is one time donation that helps support the development of all my open source projects, including PopularityBot!");
+
+            await ctx.RespondAsync(null, false, embed);
+        }
 
         /*
          * EXPLAIN COMMANDS
          */
 
-        [Command("explainpop"), Description("Explains how popularity is calculated.")]
+        [Command("explainpop"), Description("Explains how popularity is calculated."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ExplainPopularityCommand(CommandContext ctx)
         {
             var embed = new DiscordEmbedBuilder
@@ -42,7 +94,7 @@ namespace CTGPPopularityTracker
          * SHOW COMMANDS
          */
 
-        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP")]
+        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10, and if an option to sort by was sent, use that
@@ -70,7 +122,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP")]
+        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowBottomCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10
@@ -98,7 +150,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP")]
+        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopAndBottomCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10 and bottom 10 
@@ -128,7 +180,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)")]
+        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTracksFromSpecificSetCommand(CommandContext ctx, 
             [Description("The starting point of the search")]int startPoint, 
             [Description("The amount of tracks you want to list")]int count, string sortBy = null)
@@ -187,7 +239,7 @@ namespace CTGPPopularityTracker
          * FIND COMMANDS
          */
 
-        [Command("find"), Description("Finds the popularity of tracks which share the same search parameter.")]
+        [Command("find"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task GetTracksPopularityCommand(CommandContext ctx,
             [RemainingText, Description("The search parameter")]
             string param)
@@ -236,11 +288,11 @@ namespace CTGPPopularityTracker
             pollSB.Append(ctx.Guild.Id + ",");
 
             //Start by asking for a channel to send poll messages to
-            await ctx.RespondAsync(
-                "Hi there! Firstly I need to ask you for a channel for me to " +
-                "direct my poll messages to. Please respond with the channel name you want to use.");
-
-
+            var embedQuestionnaire = new DiscordEmbedBuilder();
+            embedQuestionnaire.Description = "Hi there! Firstly I need to ask you for a channel for me to " +
+                                             "direct my poll messages to. Please respond with the channel name you want to use.";
+            await ctx.RespondAsync(null, false, embedQuestionnaire);
+            
             var successful = false;
             // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             while (!successful)
@@ -253,7 +305,7 @@ namespace CTGPPopularityTracker
 
                     if (channel == null)
                     {
-                        ctx.RespondAsync("I couldn't find that text channel, try again.");
+                        ctx.RespondAsync(null, false, new DiscordEmbedBuilder().WithDescription("I couldn't find that text channel, try again."));
                         return false;
                     }
 
@@ -266,9 +318,10 @@ namespace CTGPPopularityTracker
 
             successful = false;
 
-            await ctx.RespondAsync(
+            embedQuestionnaire.Description =
                 "Awesome. Now tell me the channel name that you wish to start polls from. " +
-                "Ideally this would be protected and only accessible by certain users in the server.");
+                "Ideally this would be protected and only accessible by certain users in the server.";
+            await ctx.RespondAsync(null, false, embedQuestionnaire);
 
             // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             while (!successful)
@@ -281,7 +334,7 @@ namespace CTGPPopularityTracker
 
                     if (channel == null)
                     {
-                        ctx.RespondAsync("I couldn't find that text channel, try again.");
+                        ctx.RespondAsync(null, false, new DiscordEmbedBuilder().WithDescription("I couldn't find that text channel, try again."));
                         return false;
                     }
 
@@ -293,12 +346,14 @@ namespace CTGPPopularityTracker
             }
 
             //Save the settings
-            Program.WritePollSettings(pollSB.ToString());
-            await ctx.RespondAsync("All done! You have successfully set up polling in PopularityBot. Have fun!");
+            Program.WritePollSettings(pollSB.ToString(), ctx.Guild.Id);
+            embedQuestionnaire.Description =
+                "All done! You have successfully set up polling in PopularityBot. Have fun!";
+            await ctx.RespondAsync(null, false, embedQuestionnaire);
 
         }
 
-        [Command("startpoll"), Description("Starts the process of starting a poll.")]
+        [Command("startpoll"), Description("Starts the process of starting a poll."), RequirePollStartChannel]
         public async Task StartPollCommand(CommandContext ctx)
         {
             string[] squareBoxes = { ":red_square:", ":green_square:", ":blue_square:", ":yellow_square:", 
@@ -308,20 +363,11 @@ namespace CTGPPopularityTracker
             //Load the right settings for the server
             var pollSettings = Program.GetPollSettings(ctx.Guild.Id);
 
-            //Check they are in the right channel, and if not exit
-            if (ctx.Channel.Id != pollSettings[2])
-            {
-                await ctx.RespondAsync("You do not have permission to start a poll here.");
-                return;
-            }
-
-            await ctx.RespondAsync(
-                "You will now be asked a series of questions in which the poll will be generated from.");
-
             //First question: Ask for a description as to why the poll is being conducted.
             InteractivityResult<DiscordMessage> resultQ1;
-            await ctx.RespondAsync(
-                "*Question 1: Please provide a small description as to why you are running this poll (max 300 characters).*");
+            await ctx.RespondAsync(null, false, 
+                new DiscordEmbedBuilder().WithDescription(
+                    "**Question 1:** Please provide a small description as to why you are running this poll (max 300 characters)."));
 
             do
             {
@@ -334,9 +380,9 @@ namespace CTGPPopularityTracker
             InteractivityResult<DiscordMessage> resultQ2;
 
             await ShowTopAndBottomCommand(ctx);
-            await ctx.RespondAsync(
-                "*Question 2: Please select up to 7 tracks you wish to include in the poll. Above are the current top 10 " +
-                "and bottom 10 tracks, which may be helpful to you. Please list each track with a comma between them.*");
+            await ctx.RespondAsync(null, false,
+                new DiscordEmbedBuilder().WithDescription("**Question 2:** Please select up to 7 tracks you wish to include in the poll. Above are the current top 10 " +
+                                                          "and bottom 10 tracks, which may be helpful to you. Please list each track with a comma between them."));
 
             do
             {
@@ -346,7 +392,7 @@ namespace CTGPPopularityTracker
             var trackList = resultQ2.Result.Content.Split(',');
 
             //Third question: Duration of the poll
-            await ctx.RespondAsync("*Question 3: How long do you want the poll to last in days? (max 7)*");
+            await ctx.RespondAsync(null, false, new DiscordEmbedBuilder().WithDescription("**Question 3:** How long do you want the poll to last in days? (max 7)"));
 
             do
             {
@@ -354,25 +400,7 @@ namespace CTGPPopularityTracker
                 // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             } while (dayCount > 7 && dayCount < 1);
 
-            //Show them the details and ask if they want to start the poll
-            InteractivityResult<DiscordMessage> resultFinal;
-
-            await ctx.RespondAsync(
-                "*Here is the details of the poll. If you are happy, respond \"yes\", otherwise respond " +
-                "\"no\" to cancel it.*");
-            await ctx.Channel.SendMessageAsync(
-                $"**Description:** {descriptionPoll}\n**Tracks:** {string.Join(',', trackList)}\n**Number of days:** {dayCount}");
-
-            do
-            {
-                resultFinal = await ctx.Message.GetNextMessageAsync(m => 
-                    m.Content.ToLower().Equals("yes") || m.Content.ToLower().Equals("no"));
-            } while (resultQ1.TimedOut || string.IsNullOrEmpty(resultFinal.Result.Content));
-
-            if (resultFinal.Result.Content.ToLower().Equals("no")) return;
-
-            //TIME TO SUBMIT THE POLL
-
+            //Create the poll
             //Start by building the embed field, and add them to a list for easy ordering
             var sb = new StringBuilder();
             var trackEmojiPairs = new Dictionary<DiscordEmoji, string>();
@@ -404,6 +432,21 @@ namespace CTGPPopularityTracker
 
             pollEmbed.AddField("Tracks to vote on", fieldString);
 
+            //Show them the details and ask if they want to start the poll
+            InteractivityResult<DiscordMessage> resultFinal;
+            await ctx.RespondAsync(null, false, pollEmbed);
+            await ctx.Channel.SendMessageAsync(null, false,
+                new DiscordEmbedBuilder().WithDescription("Here is how the poll will look. If you are happy, respond **yes**, otherwise respond " +
+                                                          "**no** to cancel it."));
+            do
+            {
+                resultFinal = await ctx.Message.GetNextMessageAsync(m => 
+                    m.Content.ToLower().Equals("yes") || m.Content.ToLower().Equals("no"));
+            } while (resultQ1.TimedOut || string.IsNullOrEmpty(resultFinal.Result.Content));
+
+            if (resultFinal.Result.Content.ToLower().Equals("no")) return;
+
+            //TIME TO SUBMIT THE POLL
             //Find the channel to send the poll in and send it
             var pollChannel = ctx.Guild.Channels[pollSettings[1]];
             var pollMessage = await pollChannel.SendMessageAsync(null, false, pollEmbed);

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -18,6 +21,7 @@ namespace CTGPPopularityTracker
     public class Program
     {
         public static PopularityTracker Tracker = new PopularityTracker();
+        private static readonly EventHandler eh = new EventHandler();
         private static string SettingsFile;
 
         private static void Main(string [] args)
@@ -34,17 +38,20 @@ namespace CTGPPopularityTracker
                 SettingsFile = Console.ReadLine();
             } while (!File.Exists(@$"{SettingsFile}"));
 
-
-            //Start by gathering data, and set this to run every 55 minutes
-            var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(55);
-
-            var timer = new System.Threading.Timer(async (e) =>
+            var popularityTimer = new System.Threading.Timer(async (e) =>
             {
-                var temp = new PopularityTracker();
-                await temp.UpdatePopularity();
-                Tracker = temp;
-            }, null, startTimeSpan, periodTimeSpan);
+                // Try to get new statistics, and if it fails don't update
+                try
+                {
+                    var temp = new PopularityTracker();
+                    await temp.UpdatePopularity();
+                    Tracker = temp;
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                }
+            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(55));
 
             //Sort out Discord Bot stuff
             var discord = new DiscordClient(new DiscordConfiguration
@@ -59,6 +66,7 @@ namespace CTGPPopularityTracker
             });
 
             commands.RegisterCommands<CommandHandler>();
+            commands.CommandErrored += eh.OnCommandError;
 
             discord.UseInteractivity(new InteractivityConfiguration()
             {
@@ -66,6 +74,20 @@ namespace CTGPPopularityTracker
             });
 
             await discord.ConnectAsync();
+
+            var discordStatusTimer = new System.Threading.Timer(async (e) =>
+            {
+                var memberCount = discord.Guilds.Values.Sum(x => x.MemberCount);
+                var memberPart = memberCount > 1 ? $"{memberCount} members" : "1 member";
+                var serverPart = discord.Guilds.Count > 1 ? $"{discord.Guilds.Count} servers" : "1 server";
+                var activity = new DiscordActivity()
+                {
+                    Name = $" {memberPart} in {serverPart}",
+                    ActivityType = ActivityType.ListeningTo,
+                };
+                await discord.UpdateStatusAsync(activity);
+            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+
             await Task.Delay(-1);
         }
 
@@ -90,9 +112,22 @@ namespace CTGPPopularityTracker
             return null;
         }
 
-        public static void WritePollSettings(string line)
+        /// <summary>
+        /// Writes settings to the poll settings file.
+        /// </summary>
+        /// <param name="line">The settings to add for a specific guild.</param>
+        /// <param name="guild">The guild you want to overwrite settings for.</param>
+        public static void WritePollSettings(string line, ulong guild = 0)
         {
-            File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
+            if (guild > 0)
+            {
+                var arrSettings = File.ReadAllLines(@$"{SettingsFile}");
+                for (var i = 0; i < arrSettings.Length; i++)
+                {
+                    if (arrSettings[i].Contains(guild.ToString())) arrSettings[i] = line;
+                    File.WriteAllLines(@$"{SettingsFile}", arrSettings);
+                }
+            } else File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
         }
     }
 }
