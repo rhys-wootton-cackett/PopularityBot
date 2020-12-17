@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -20,7 +21,58 @@ namespace CTGPPopularityTracker
         private const string PopularityInfo =
             "*Popularity is calculated using the sum of the popularty of a track in CTGP Revolution Time Trials, along with the number of times the track has been played on WiimmFi in the past month.*";
 
+        private const string DonateInfo =
+            "Hosting this bot costs me money (around $5 a month using DigitalOceans VPS), and whilst I can afford it at the moment, help from people that like and use the bot would be super helpful. All " +
+            "donations would be put straight into the DigitalOcean account, so you can feel safe knowing that the money does go directly to support the bot's hosting and development, along with helping me " +
+            "work on other project to do with CTGP. Don't feel as though you need to donate, but any amount if you can donate would be very appreciated :)";
         private readonly DiscordColor _botEmbedColor = new DiscordColor("#FE0002");
+
+        /*
+         * LINK COMMANDS
+         */
+        [Command("github"), Description("Sends a link to my GitHub page"), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task SendGitHubLinkCommand(CommandContext ctx)
+        {
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = _botEmbedColor,
+                Title = "Check out my source code!",
+                Url = "https://github.com/rhys-wootton/PopularityBot",
+                Thumbnail = new DiscordEmbedBuilder.EmbedThumbnail()
+                {
+                    Url = "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+                    Height = 20,
+                    Width = 20
+                }
+            };
+
+            await ctx.RespondAsync(null, false, embed);
+        }
+
+        [Command("donate"),
+         Description(
+             "Sends donation links to help support the development of the bot and other things I (RhysRah) create."),
+         Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task SendDonationLinksCommand(CommandContext ctx)
+        {
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = _botEmbedColor,
+                Title = "Everything helps!",
+                Description = DonateInfo,
+                Footer = new DiscordEmbedBuilder.EmbedFooter()
+                {
+                    Text = $"❤️ Thanks for the support!"
+                }
+            };
+
+            embed.AddField("GitHub Sponsor",
+                "https://github.com/sponsors/rhys-wootton \nThis is a monthly subscription that helps support the development of all my open source projects, including PopularityBot!");
+            embed.AddField("Ko Fi",
+                "https://ko-fi.com/rhyswootton \nThis is one time donation that helps support the development of all my open source projects, including PopularityBot!");
+
+            await ctx.RespondAsync(null, false, embed);
+        }
 
         /*
          * EXPLAIN COMMANDS

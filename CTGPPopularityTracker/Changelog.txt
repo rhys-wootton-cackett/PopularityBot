@@ -1,7 +1,16 @@
-﻿-----------------------------------------------------------
-						CHANGELOG
------------------------------------------------------------
-v1.1 - 
+﻿---------
+CHANGELOG
+---------
+
+v1.2 - 17/12/2020
+-----------------
+* A bug was found where poll settings were not being updated. This has now been fixed.
+* The bot now displays how many servers and members it is currently helping. At the moment it is only this one, but I plan on releasing this more publically soon!
+* Cooldowns have now been implemented. All public commands have a limit of 5 per 60 seconds per user. If you try to go over the limit, the bot will notify you and tell you how long you have left until you can submit that command again.
+* NEW COMMAND: '!github' sends a link to the GitHub hosting the bot's source code.
+* NEW COMMAND: "!donate" sends a link to my donation page and GitHub sponsers page. Hosting this bot costs me money (around $5 a month using DigitalOceans VPS), and whilst I can afford it at the moment, help from people that like and use the bot would be super helpful. All donations would be put straight into the DigitalOcean account, so you can feel safe knowing that the money does go directly to support the bot's hosting and development, along with helping me work on other project to do with CTGP. Don't feel as though you need to donate, but any amount if you can donate would be very appreciated :)
+
+v1.1 - 15/12/2020
 -----------------
 * The algorithm for getting WiimmFi popularity has been improved, and now searches exclusively using a tracks SHA1 hash, making it more reliable. However, this comes at a cost of the bot sending a load more requests to the WiimmFi website, so bot updates will take longer (set to update now every 55-60 minutes).
 * The search algorithm has been made harsher. It now only searches for specific words in a track. Single letter searches yield no results now. This should fix a search for 'DS' showing other tracks containing words such as "grounds".

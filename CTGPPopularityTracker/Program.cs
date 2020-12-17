@@ -3,6 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -39,9 +40,17 @@ namespace CTGPPopularityTracker
 
             var popularityTimer = new System.Threading.Timer(async (e) =>
             {
-                var temp = new PopularityTracker();
-                await temp.UpdatePopularity();
-                Tracker = temp;
+                // Try to get new statistics, and if it fails don't update
+                try
+                {
+                    var temp = new PopularityTracker();
+                    await temp.UpdatePopularity();
+                    Tracker = temp;
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                }
             }, null, TimeSpan.Zero, TimeSpan.FromMinutes(55));
 
             //Sort out Discord Bot stuff
