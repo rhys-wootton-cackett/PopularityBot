@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -35,17 +37,12 @@ namespace CTGPPopularityTracker
                 SettingsFile = Console.ReadLine();
             } while (!File.Exists(@$"{SettingsFile}"));
 
-
-            //Start by gathering data, and set this to run every 55 minutes
-            var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(55);
-
-            var timer = new System.Threading.Timer(async (e) =>
+            var popularityTimer = new System.Threading.Timer(async (e) =>
             {
                 var temp = new PopularityTracker();
                 await temp.UpdatePopularity();
                 Tracker = temp;
-            }, null, startTimeSpan, periodTimeSpan);
+            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(55));
 
             //Sort out Discord Bot stuff
             var discord = new DiscordClient(new DiscordConfiguration
@@ -68,6 +65,20 @@ namespace CTGPPopularityTracker
             });
 
             await discord.ConnectAsync();
+
+            var discordStatusTimer = new System.Threading.Timer(async (e) =>
+            {
+                var memberCount = discord.Guilds.Values.Sum(x => x.MemberCount);
+                var memberPart = memberCount > 1 ? $"{memberCount} members" : "1 member";
+                var serverPart = discord.Guilds.Count > 1 ? $"{discord.Guilds.Count} servers" : "1 server";
+                var activity = new DiscordActivity()
+                {
+                    Name = $" {memberPart} in {serverPart}",
+                    ActivityType = ActivityType.ListeningTo,
+                };
+                await discord.UpdateStatusAsync(activity);
+            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+
             await Task.Delay(-1);
         }
 
