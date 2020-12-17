@@ -26,7 +26,7 @@ namespace CTGPPopularityTracker
          * EXPLAIN COMMANDS
          */
 
-        [Command("explainpop"), Description("Explains how popularity is calculated.")]
+        [Command("explainpop"), Description("Explains how popularity is calculated."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ExplainPopularityCommand(CommandContext ctx)
         {
             var embed = new DiscordEmbedBuilder
@@ -42,7 +42,7 @@ namespace CTGPPopularityTracker
          * SHOW COMMANDS
          */
 
-        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP")]
+        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10, and if an option to sort by was sent, use that
@@ -70,7 +70,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP")]
+        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowBottomCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10
@@ -98,7 +98,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP")]
+        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopAndBottomCommand(CommandContext ctx, string sortBy = null)
         {
             //Get the top 10 and bottom 10 
@@ -128,7 +128,7 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
-        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)")]
+        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTracksFromSpecificSetCommand(CommandContext ctx, 
             [Description("The starting point of the search")]int startPoint, 
             [Description("The amount of tracks you want to list")]int count, string sortBy = null)
@@ -187,7 +187,7 @@ namespace CTGPPopularityTracker
          * FIND COMMANDS
          */
 
-        [Command("find"), Description("Finds the popularity of tracks which share the same search parameter.")]
+        [Command("find"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task GetTracksPopularityCommand(CommandContext ctx,
             [RemainingText, Description("The search parameter")]
             string param)
@@ -293,7 +293,7 @@ namespace CTGPPopularityTracker
             }
 
             //Save the settings
-            Program.WritePollSettings(pollSB.ToString());
+            Program.WritePollSettings(pollSB.ToString(), ctx.Guild.Id);
             await ctx.RespondAsync("All done! You have successfully set up polling in PopularityBot. Have fun!");
 
         }

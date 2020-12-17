@@ -18,6 +18,7 @@ namespace CTGPPopularityTracker
     public class Program
     {
         public static PopularityTracker Tracker = new PopularityTracker();
+        private static readonly EventHandler eh = new EventHandler();
         private static string SettingsFile;
 
         private static void Main(string [] args)
@@ -59,6 +60,7 @@ namespace CTGPPopularityTracker
             });
 
             commands.RegisterCommands<CommandHandler>();
+            commands.CommandErrored += eh.OnCommandError;
 
             discord.UseInteractivity(new InteractivityConfiguration()
             {
@@ -90,9 +92,22 @@ namespace CTGPPopularityTracker
             return null;
         }
 
-        public static void WritePollSettings(string line)
+        /// <summary>
+        /// Writes settings to the poll settings file.
+        /// </summary>
+        /// <param name="line">The settings to add for a specific guild.</param>
+        /// <param name="guild">The guild you want to overwrite settings for.</param>
+        public static void WritePollSettings(string line, ulong guild = 0)
         {
-            File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
+            if (guild > 0)
+            {
+                var arrSettings = File.ReadAllLines(@$"{SettingsFile}");
+                for (var i = 0; i < arrSettings.Length; i++)
+                {
+                    if (arrSettings[i].Contains(guild.ToString())) arrSettings[i] = line;
+                    File.WriteAllLines(@$"{SettingsFile}", arrSettings);
+                }
+            } else File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
         }
     }
 }
