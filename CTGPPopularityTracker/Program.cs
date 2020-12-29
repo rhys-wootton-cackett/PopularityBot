@@ -62,11 +62,12 @@ namespace CTGPPopularityTracker
 
             var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
             {
-                StringPrefixes = new[] {"!"},
+                StringPrefixes = new[] {"!"}
             });
 
             commands.RegisterCommands<CommandHandler>();
             commands.CommandErrored += eh.OnCommandError;
+
 
             discord.UseInteractivity(new InteractivityConfiguration()
             {
@@ -82,7 +83,7 @@ namespace CTGPPopularityTracker
                 var serverPart = discord.Guilds.Count > 1 ? $"{discord.Guilds.Count} servers" : "1 server";
                 var activity = new DiscordActivity()
                 {
-                    Name = $" {memberPart} in {serverPart}",
+                    Name = $"{memberPart} in {serverPart}",
                     ActivityType = ActivityType.ListeningTo,
                 };
                 await discord.UpdateStatusAsync(activity);
