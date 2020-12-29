@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -17,7 +18,7 @@ namespace CTGPPopularityTracker
 
         public DateTime LastUpdated { get; set; }
         public const string CtgpTtLink = "http://tt.chadsoft.co.uk/ctgp-leaderboards.json";
-        public const string WiimmFiLink = "https://wiimmfi.de/stats/track/mv/ctgp?p=std,c0,0,";
+        public const string WiimmFiLink = "https://wiimmfi.de/stats/track/wv/ctgp?p=std,c0,0,";
 
         public PopularityTracker()
         {
@@ -86,14 +87,14 @@ namespace CTGPPopularityTracker
         private async Task GetWiimmFiPopularity()
         {
             //Increment this counter by 100 each time.
-            var startPoint = 0;
+            int startPoint = 0, tracksUpdated = 0;
 
             //Connect to the website and get the table whilst the start point is less
             //than or equal to 400
             using var wiimmWc = new WebClient();
             Console.WriteLine("Updating results from WiimmFi statistics, this may take a while...");
 
-            while (startPoint <= 400)
+            while (true)
             {
                 //Extract the table and start looping through rows adding the track popularity count.
                 var doc = new HtmlDocument();
@@ -111,10 +112,7 @@ namespace CTGPPopularityTracker
 
                     var trackName = cells[2].InnerText;
 
-                    //If the track has been played 0 times, we can finish scanning since 
-                    //the popularity of them will not change.
-                    if (cells[3].InnerText.Contains("–")) return;
-                    var trackPopularity = int.Parse(cells[3].InnerText);
+                    var trackPopularity = CalculateWiimmFiTrackPopularity(cells);
 
                     var trackKey = Tracks.Keys.FirstOrDefault(key =>
                         key.Item2 != null && (trackName.Contains(key.Item2)));
@@ -127,8 +125,10 @@ namespace CTGPPopularityTracker
                         Tracks[trackKey] = wiimmPopularityTrack;
 
                         //Log the track that was updated
-                        Console.WriteLine($"Updated track: ${trackKey.Item1} ({trackKey.Item2})");
+                        Console.WriteLine($"Updated track: {trackKey.Item1} (TT: {Tracks[trackKey].Item1}, WF: {Tracks[trackKey].Item2})");
+                        tracksUpdated++;
 
+                        if (tracksUpdated == 218) return;
                         continue;
                     }
 
@@ -159,13 +159,41 @@ namespace CTGPPopularityTracker
                         Tracks[hashKey] = wiimmPopularitySHA;
 
                         //Log the track that was updated
-                        Console.WriteLine($"Updated track: ${hashKey.Item1} ({hashKey.Item2})");
+                        Console.WriteLine($"Updated track: {hashKey.Item1} (TT: {Tracks[hashKey].Item1}, WF: {Tracks[hashKey].Item2})");
+                        tracksUpdated++;
+
+                        if (tracksUpdated == 218) return;
                     }
                 }
 
                 //Change the value to adjust URL
                 startPoint += 100;
             }
+        }
+
+        /// <summary>
+        /// Calculates popularity for WiimmFi statistics, which is determined using an
+        /// exponentially decaying function based on the number of times a track has been
+        /// played over a 3 week period.
+        /// https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing
+        /// </summary>
+        /// <param name="trackCells">The track cells from WiimmFi</param>
+        /// <returns>The popularity of the track.</returns>
+        private static int CalculateWiimmFiTrackPopularity(HtmlNodeCollection trackCells)
+        {
+            //Start by getting the date it was added
+            var dateString = Regex.Replace(trackCells[8].Attributes["title"].Value, "UTC.*", "");
+            var date = DateTime.Parse(dateString);
+
+            //Work out how many weeks need to be accounted for
+            long days = (DateTime.UtcNow - date).Days <= 84 ? (DateTime.UtcNow - date).Days : 84;
+
+            //Run the mathematical function
+            if (trackCells[7].InnerText.Contains("–")) return 0;
+
+            var popularity = double.Parse(trackCells[7].InnerText) * Math.Pow(0.5, (days / 7.0) / 4);
+
+            return (int)Math.Round(popularity);
         }
 
         /// <summary>
@@ -225,7 +253,7 @@ namespace CTGPPopularityTracker
                         "tt" => $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item1})\n",
                         "wf" => $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item2})\n",
                         _ =>
-                            $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item1 + tracksSorted[i - 1].Value.Item2}) `{tracksSorted[i - 1].Value.Item1} + {tracksSorted[i - 1].Value.Item2}`\n"
+                            $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item1 + tracksSorted[i - 1].Value.Item2}) `{tracksSorted[i - 1].Value.Item1}+{tracksSorted[i - 1].Value.Item2}`\n"
                     };
 
                     sb.Append(trackLine);
@@ -241,7 +269,7 @@ namespace CTGPPopularityTracker
                         "tt" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1})\n",
                         "wf" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item2})\n",
                         _ =>
-                            $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2}) `{tracksSorted[i].Value.Item1} + {tracksSorted[i].Value.Item2}`\n"
+                            $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2}) `{tracksSorted[i].Value.Item1}+{tracksSorted[i].Value.Item2}`\n"
                     };
 
                     sb.Append(trackLine);
@@ -298,7 +326,7 @@ namespace CTGPPopularityTracker
                     "tt" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1})\n",
                     "wf" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item2})\n",
                     _ =>
-                        $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2}) `{tracksSorted[i].Value.Item1} + {tracksSorted[i].Value.Item2}`\n"
+                        $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2}) `{tracksSorted[i].Value.Item1}+{tracksSorted[i].Value.Item2}`\n"
                 };
 
                 sb.Append(trackLine);

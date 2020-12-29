@@ -2,6 +2,11 @@
 CHANGELOG
 ---------
 
+v1.3 - 29/12/2020
+-----------------
+* The formula for calculating popularity has been changed. It should now reflect new tracks coming into the pack much fairer than previously. To read about it, go here: https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing.
+* The algorithm for getting WiimmFi popularity has been improved. It now stops scanning the website after all 218 tracks have been updated, which it did not do previously. This should both reduce the number of requests to the WiimmFi site, and result in slightly faster updates.
+
 v1.2 - 17/12/2020
 -----------------
 * A bug was found where poll settings were not being updated. This has now been fixed.
