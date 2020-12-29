@@ -18,9 +18,6 @@ namespace CTGPPopularityTracker
     {
 
         //DISCORD CONSTS
-        private const string PopularityInfo =
-            "*Popularity is calculated using the sum of the popularty of a track in CTGP Revolution Time Trials, along with the number of times the track has been played on WiimmFi in the past month.*";
-
         private const string DonateInfo =
             "Hosting this bot costs me money (around $5 a month using DigitalOceans VPS), and whilst I can afford it at the moment, help from people that like and use the bot would be super helpful. All " +
             "donations would be put straight into the DigitalOcean account, so you can feel safe knowing that the money does go directly to support the bot's hosting and development, along with helping me " +
@@ -81,13 +78,7 @@ namespace CTGPPopularityTracker
         [Command("explainpop"), Description("Explains how popularity is calculated."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ExplainPopularityCommand(CommandContext ctx)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Description = PopularityInfo
-            };
-
-            await ctx.RespondAsync(null, false, embed);
+            await ctx.RespondAsync("https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing");
         }
 
         /*
