@@ -81,11 +81,13 @@ namespace CTGPPopularityTracker
                 var memberCount = discord.Guilds.Values.Sum(x => x.MemberCount);
                 var memberPart = memberCount > 1 ? $"{memberCount} members" : "1 member";
                 var serverPart = discord.Guilds.Count > 1 ? $"{discord.Guilds.Count} servers" : "1 server";
+
                 var activity = new DiscordActivity()
                 {
                     Name = $"{memberPart} in {serverPart}",
                     ActivityType = ActivityType.ListeningTo,
                 };
+
                 await discord.UpdateStatusAsync(activity);
             }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 
@@ -110,7 +112,7 @@ namespace CTGPPopularityTracker
                 if (pollAttr[0] == guild) return pollAttr;
             }
 
-            return null;
+            return new ulong[]{0,0,0};
         }
 
         /// <summary>
