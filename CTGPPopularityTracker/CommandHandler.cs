@@ -86,7 +86,7 @@ namespace CTGPPopularityTracker
          */
 
         [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowTopCommand(CommandContext ctx, string sortBy = null)
+        public async Task ShowTopCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             //Get the top 10, and if an option to sort by was sent, use that
             var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
@@ -114,7 +114,7 @@ namespace CTGPPopularityTracker
         }
 
         [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowBottomCommand(CommandContext ctx, string sortBy = null)
+        public async Task ShowBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             //Get the top 10
             var bottomTen = Program.Tracker.GetSortedListAsString(Program.Tracker.Tracks.Count, 10, true, sortBy);
@@ -142,7 +142,7 @@ namespace CTGPPopularityTracker
         }
 
         [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowTopAndBottomCommand(CommandContext ctx, string sortBy = null)
+        public async Task ShowTopAndBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             //Get the top 10 and bottom 10 
             var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
@@ -174,7 +174,8 @@ namespace CTGPPopularityTracker
         [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTracksFromSpecificSetCommand(CommandContext ctx, 
             [Description("The starting point of the search")]int startPoint, 
-            [Description("The amount of tracks you want to list")]int count, string sortBy = null)
+            [Description("The amount of tracks you want to list")]int count,
+            [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             if (count > 25 || count < 2)
             {
@@ -232,7 +233,7 @@ namespace CTGPPopularityTracker
 
         [Command("find"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task GetTracksPopularityCommand(CommandContext ctx,
-            [RemainingText, Description("The search parameter")]
+            [RemainingText, Description("The search parameter, followed by optional sort type (tt or wf)")]
             string param)
         {
             //If "wf" or "tt" is the last parameter then use them
