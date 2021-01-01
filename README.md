@@ -6,13 +6,13 @@ PopularityBot is a Discord bot that tracks the changes in popularity of tracks t
 
 ## How it works
 
-PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](http://tt.chadsoft.co.uk/index.json), and the [WiimmFi CTWW statistics page](https://wiimmfi.de/stats/track/mv/ctgp). The flow of getting the popularity of each track is as follows:
+PopularityBot works by using two datasets, the [CTGP Revolution Time Trial API](http://tt.chadsoft.co.uk/index.json), and the [WiimmFi weekly CTWW statistics page](https://wiimmfi.de/stats/track/wv/ctgp). The flow of getting the popularity of each track is as follows:
 
 1. Every hour, PopularityBot will connect to the CTGP Revolution Time Trial API and grab the data from the `ctgp-leaderboards` section.
 2. PopularityBot will then store the track’s name and SHA1 hash, along with its popularity score, in a `HashMap`, which allows PopularityBot to map a unique track to a value.
 3. PopularityBot then knows all tracks that are in CTGP Revolution and begins to connect to the WiimmFi statistics page.
 4. Once connected, it scans through each row, seeing if there is a name match in the existing `HashMap` created from the Time Trial API, using the SHA1 hash.
-      1. If there is a match, the value on the main statistics page is added to the existing popularity score (like above.)
+      1. If there is a match, [a formula is run to determine its popularity score](https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing).
       2. If there is no match, the track is not in CTGP Revolution, so we skip it.
 
 ## Commands
