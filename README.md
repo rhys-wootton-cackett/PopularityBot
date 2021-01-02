@@ -1,5 +1,5 @@
 <p align="center"><img src="https://i.imgur.com/5Pkx6yB.png" width="150" height="150"></p>
-<p align="center"><img src="https://img.shields.io/github/workflow/status/rhys-wootton/PopularityBot/.NET%20Core"> <img src="https://img.shields.io/github/license/rhys-wootton/PopularityBot"> <img src="https://img.shields.io/github/repo-size/rhys-wootton/PopularityBot"> <img src="https://img.shields.io/tokei/lines/github/rhys-wootton/PopularityBot"></p>
+<p align="center"><img src="https://img.shields.io/github/workflow/status/rhys-wootton/PopularityBot/.NET%20Core"> <img src="https://img.shields.io/github/license/rhys-wootton/PopularityBot"> <img src="https://img.shields.io/github/repo-size/rhys-wootton/PopularityBot"> <img src="https://img.shields.io/tokei/lines/github/rhys-wootton/PopularityBot"><br><a href="http://bit.ly/PopularityBot"><img src="https://img.shields.io/static/v1?&label=discord&message=add%20to%20server&color=7289DA"></a></p>
 
 PopularityBot is a Discord bot that tracks the changes in popularity of tracks that are currently in [CTGP Revolution](https://www.chadsoft.co.uk/). It was created to remove the struggles of seeing how popular certain tracks are, and has built in polling functionality to allows users to vote on tracks.
 
