@@ -122,15 +122,18 @@ namespace CTGPPopularityTracker
         /// <param name="guild">The guild you want to overwrite settings for.</param>
         public static void WritePollSettings(string line, ulong guild = 0)
         {
-            if (guild > 0)
+            var arrSettings = File.ReadAllLines(@$"{SettingsFile}");
+
+            if (arrSettings.Length > 0)
             {
-                var arrSettings = File.ReadAllLines(@$"{SettingsFile}");
                 for (var i = 0; i < arrSettings.Length; i++)
                 {
                     if (arrSettings[i].Contains(guild.ToString())) arrSettings[i] = line;
                     File.WriteAllLines(@$"{SettingsFile}", arrSettings);
                 }
             } else File.AppendAllText(@$"{SettingsFile}", $"{line}\n");
+
+
         }
     }
 }

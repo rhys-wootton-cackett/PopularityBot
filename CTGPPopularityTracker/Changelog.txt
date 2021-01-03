@@ -2,6 +2,15 @@
 CHANGELOG
 ---------
 
+v1.4 - 02/01/2021
+-----------------
+* NEW COMMAND: '!wiki' will send a list of links to tracks based on a search parameter from the Custom Mario Kart Wiiki for tracks that are in CTGP Revolution.
+* If you put incorrect parameters into a command (for example, '!showtop wt' is invalid), you will be sent the help for the command telling you how to use it. 
+* Turns out setting up polling was broken as it wouldn't allow you to add settings. You should be able to setup polling now!
+* I've made polling more loose in its wording, so now you can set up polls for anything related to Mario Kart Wii!
+* For a bit of visual appeal, the bot now says it is typing when responding to a command.
+* Timestamps should not be in the time zone you are in.
+
 v1.3 - 29/12/2020
 -----------------
 * The formula for calculating popularity has been changed. It should now reflect new tracks coming into the pack much fairer than previously. To read about it, go here: https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing.
