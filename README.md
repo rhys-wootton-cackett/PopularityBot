@@ -32,6 +32,7 @@ All these commands have overloads for only showing popularity based on Time Tria
 * `!startpoll` Starts the process of creating a poll. It will ask a few questions relating to the creation of the poll, and once all questions have been answered, a poll is started.
 
 ### Other Commands
+* `!wiki` Send a list of links to tracks based on a search parameter from the [Custom Mario Kart Wiiki](http://wiki.tockdom.com/wiki/Main_Page) for tracks that are in CTGP Revolution.
 * `!github` Sends a link to the GitHub repo for PopularityBot.
 * `!donate` Sends a message on how to donate to me to help this project and others I make.
 
