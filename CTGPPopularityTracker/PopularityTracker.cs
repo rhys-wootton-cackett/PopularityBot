@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -19,6 +20,7 @@ namespace CTGPPopularityTracker
         public DateTime LastUpdated { get; set; }
         public const string CtgpTtLink = "http://tt.chadsoft.co.uk/ctgp-leaderboards.json";
         public const string WiimmFiLink = "https://wiimmfi.de/stats/track/wv/ctgp?p=std,c0,0,";
+        public const string WikiLink = "http://wiki.tockdom.com/wiki/";
 
         public PopularityTracker()
         {
@@ -335,6 +337,59 @@ namespace CTGPPopularityTracker
             }
 
             if (count == 25) sb.Append("\n*Only showing the first 25 matches. Refine your search.*\n");
+            return sb.Length == 0 ? "*No results found*" : sb.ToString().Substring(0, sb.Length - 1);
+        }
+
+        /// <summary>
+        /// Generate a string containing Custom Mario Kart Wiiki links based on the tracks containing "searchParam"
+        /// </summary>
+        /// <param name="searchParam">The search parameter</param>
+        /// <returns>A string with the tracks containing the search parameter in alphabetical order</returns>
+        public string FindWikiTracksBasedOnParameter(string searchParam)
+        {
+            //First sort the list in alphabetical order
+            var tracksSorted = Tracks.ToList();
+            tracksSorted.Sort((pair1, pair2) => string.Compare(pair1.Key.Item1, pair2.Key.Item1, StringComparison.Ordinal));
+
+            var sb = new StringBuilder();
+            var count = 0;
+
+            //Loop through the list
+            for (var i = 0; i < Tracks.Count; i++)
+            {
+                var found = false;
+
+                //If the search parameter is one word, look through words only.
+                //If the search parameter is multiple words, search using contains
+                if (searchParam.Split(" ").Length > 1)
+                {
+                    if (tracksSorted[i].Key.Item1.ToLower().Contains(searchParam.ToLower())) found = true;
+                }
+                else
+                {
+                    //Split track name into an array, and search equality of exact words.
+                    var trackWords = tracksSorted[i].Key.Item1.Split(' ');
+
+                    foreach (var word in trackWords)
+                    {
+                        if (!word.ToLower().Equals(searchParam.ToLower())) continue;
+                        found = true;
+                    }
+                }
+
+                //If not found, loop again
+                if (!found) continue;
+
+                //Get the sum of the popularity
+                //Format string according to 
+                var trackLine =
+                    $"**•** [{tracksSorted[i].Key.Item1}]({WikiLink}{Uri.EscapeDataString(tracksSorted[i].Key.Item1)})\n";
+                sb.Append(trackLine);
+                count++;
+                if (count == 10) break;
+            }
+
+            if (count == 10) sb.Append("\n*Only showing the first 10 matches. Refine your search.*\n");
             return sb.Length == 0 ? "*No results found*" : sb.ToString().Substring(0, sb.Length - 1);
         }
 

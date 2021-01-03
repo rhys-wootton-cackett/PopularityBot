@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 
@@ -17,6 +18,16 @@ namespace CTGPPopularityTracker
             switch (e.Exception)
             {
                 case CommandNotFoundException _:
+                    return Task.CompletedTask;
+                case ArgumentException _:
+                    if (e.Command?.Name == null) return Task.CompletedTask;
+
+                    if (e.Context?.Channel == null) return Task.CompletedTask;
+
+                    await new CommandsNextExtension.DefaultHelpModule().DefaultHelpAsync(e.Context, e.Command.Name.ToLower());
+                    var message = e.Context.Channel.GetMessageAsync(e.Context.Channel.LastMessageId);
+                    await Task.Delay(TimeSpan.FromSeconds(15));
+                    await message.Result.DeleteAsync();
                     return Task.CompletedTask;
                 case ChecksFailedException _:
                     {
@@ -35,7 +46,7 @@ namespace CTGPPopularityTracker
                             }
                             else
                             {
-                                var m = e.Context?.Channel?.SendMessageAsync($"{e.Context.User.Mention}{ParseFailedCheck(attr)}");
+                                var m = e.Context?.Channel?.SendMessageAsync($"{e.Context.User.Mention} {ParseFailedCheck(attr)}");
                                 await Task.Delay(TimeSpan.FromSeconds(10));
                                 if (m != null) await m.Result.DeleteAsync();
                             }

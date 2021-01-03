@@ -30,6 +30,8 @@ namespace CTGPPopularityTracker
         [Command("github"), Description("Sends a link to my GitHub page"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task SendGitHubLinkCommand(CommandContext ctx)
         {
+            await ctx.TriggerTypingAsync();
+
             var embed = new DiscordEmbedBuilder
             {
                 Color = _botEmbedColor,
@@ -52,6 +54,8 @@ namespace CTGPPopularityTracker
          Cooldown(5, 50, CooldownBucketType.User)]
         public async Task SendDonationLinksCommand(CommandContext ctx)
         {
+            await ctx.TriggerTypingAsync();
+
             var embed = new DiscordEmbedBuilder
             {
                 Color = _botEmbedColor,
@@ -78,6 +82,7 @@ namespace CTGPPopularityTracker
         [Command("explainpop"), Description("Explains how popularity is calculated."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ExplainPopularityCommand(CommandContext ctx)
         {
+            await ctx.TriggerTypingAsync();
             await ctx.RespondAsync("https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing");
         }
 
@@ -88,6 +93,8 @@ namespace CTGPPopularityTracker
         [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
+            await ctx.TriggerTypingAsync();
+
             //Get the top 10, and if an option to sort by was sent, use that
             var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
 
@@ -97,8 +104,9 @@ namespace CTGPPopularityTracker
                 Color = _botEmbedColor,
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
-                    Text = $"Last updated: {Program.Tracker.LastUpdated:dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                    Text = $"Last updated"
+                },
+                Timestamp = Program.Tracker.LastUpdated
             };
 
             //Add field to embed and send
@@ -116,6 +124,8 @@ namespace CTGPPopularityTracker
         [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
+            await ctx.TriggerTypingAsync();
+
             //Get the top 10
             var bottomTen = Program.Tracker.GetSortedListAsString(Program.Tracker.Tracks.Count, 10, true, sortBy);
 
@@ -125,8 +135,9 @@ namespace CTGPPopularityTracker
                 Color = _botEmbedColor,
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
-                    Text = $"Last updated: {Program.Tracker.LastUpdated:dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                    Text = $"Last updated"
+                },
+                Timestamp = Program.Tracker.LastUpdated
             };
 
             //Add field to embed and send
@@ -144,6 +155,8 @@ namespace CTGPPopularityTracker
         [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task ShowTopAndBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
+            await ctx.TriggerTypingAsync();
+
             //Get the top 10 and bottom 10 
             var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
             var bottomTen = Program.Tracker.GetSortedListAsString(Program.Tracker.Tracks.Count, 10, true, sortBy);
@@ -154,8 +167,9 @@ namespace CTGPPopularityTracker
                 Color = _botEmbedColor,
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
-                    Text = $"Last updated: {Program.Tracker.LastUpdated:dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                    Text = $"Last updated"
+                },
+                Timestamp = Program.Tracker.LastUpdated
             };
 
             //Add fields to embed
@@ -177,6 +191,8 @@ namespace CTGPPopularityTracker
             [Description("The amount of tracks you want to list")]int count,
             [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
+            await ctx.TriggerTypingAsync();
+
             if (count > 25 || count < 2)
             {
                 await ctx.RespondAsync(
@@ -210,10 +226,8 @@ namespace CTGPPopularityTracker
             var embed = new DiscordEmbedBuilder
             {
                 Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = $"Last updated: {Program.Tracker.LastUpdated:dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Last updated" },
+                Timestamp = Program.Tracker.LastUpdated
             };
 
             //Add field to embed and send
@@ -233,9 +247,10 @@ namespace CTGPPopularityTracker
 
         [Command("find"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
         public async Task GetTracksPopularityCommand(CommandContext ctx,
-            [RemainingText, Description("The search parameter, followed by optional sort type (tt or wf)")]
-            string param)
+            [RemainingText, Description("The search parameter, followed by optional sort type (tt or wf)")] string param)
         {
+            await ctx.TriggerTypingAsync();
+
             //If "wf" or "tt" is the last parameter then use them
             var paramInput = param.Split(" ");
 
@@ -251,10 +266,8 @@ namespace CTGPPopularityTracker
             var embed = new DiscordEmbedBuilder
             {
                 Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = $"Last updated: {Program.Tracker.LastUpdated:dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Last updated" },
+                Timestamp = Program.Tracker.LastUpdated
             };
 
             //Add fields to embed
@@ -268,6 +281,31 @@ namespace CTGPPopularityTracker
             await ctx.RespondAsync(null, false, embed);
         }
 
+        [Command("wiki"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task GetTrackWikiLinkCommand(CommandContext ctx,
+            [RemainingText, Description("The search parameter")]
+            string param)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var tracks = Program.Tracker.FindWikiTracksBasedOnParameter(param);
+
+            //Craft the Embed to the user
+            var embed = new DiscordEmbedBuilder
+            {
+                Color = _botEmbedColor,
+                Title = "Custom Mario Kart Wiiki",
+                Description = "A track may have multiple versions by multiple authors. If so, the link will take you to a page showcasing all versions available.",
+                Thumbnail = new DiscordEmbedBuilder.EmbedThumbnail()
+                {
+                    Url = "http://wiki.tockdom.com/w/skins/common/images/ct-wiki.png"
+                }
+            };
+
+            embed.AddField($"Tracks containing \"{param}\"", tracks);
+            await ctx.RespondAsync(null, false, embed);
+        }
+
         /*
          * POLL COMMANDS
          */
@@ -276,6 +314,8 @@ namespace CTGPPopularityTracker
          RequirePermissions(Permissions.Administrator)]
         public async Task RunPollSetupCommand(CommandContext ctx)
         {
+            await ctx.TriggerTypingAsync();
+
             var pollSB = new StringBuilder();
             pollSB.Append(ctx.Guild.Id + ",");
 
@@ -310,6 +350,8 @@ namespace CTGPPopularityTracker
 
             successful = false;
 
+            await ctx.TriggerTypingAsync();
+
             embedQuestionnaire.Description =
                 "Awesome. Now tell me the channel name that you wish to start polls from. " +
                 "Ideally this would be protected and only accessible by certain users in the server.";
@@ -338,6 +380,8 @@ namespace CTGPPopularityTracker
             }
 
             //Save the settings
+            await ctx.TriggerTypingAsync();
+
             Program.WritePollSettings(pollSB.ToString(), ctx.Guild.Id);
             embedQuestionnaire.Description =
                 "All done! You have successfully set up polling in PopularityBot. Have fun!";
@@ -353,6 +397,7 @@ namespace CTGPPopularityTracker
             var dayCount = int.MaxValue;
 
             //Load the right settings for the server
+            await ctx.TriggerTypingAsync();
             var pollSettings = Program.GetPollSettings(ctx.Guild.Id);
 
             //First question: Ask for a description as to why the poll is being conducted.
@@ -368,13 +413,12 @@ namespace CTGPPopularityTracker
 
             var descriptionPoll = resultQ1.Result?.Content;
 
-            //Second question: Ask what tracks are to be included, split by commas, max 7
+            //Second question: Ask what options are to be included, split by commas, max 7
+            await ctx.TriggerTypingAsync();
             InteractivityResult<DiscordMessage> resultQ2;
 
-            await ShowTopAndBottomCommand(ctx);
             await ctx.RespondAsync(null, false,
-                new DiscordEmbedBuilder().WithDescription("**Question 2:** Please select up to 7 tracks you wish to include in the poll. Above are the current top 10 " +
-                                                          "and bottom 10 tracks, which may be helpful to you. Please list each track with a comma between them."));
+                new DiscordEmbedBuilder().WithDescription("**Question 2:** You have a maximum 7 options to add to the poll. Please separate each option with a comma."));
 
             do
             {
@@ -384,6 +428,7 @@ namespace CTGPPopularityTracker
             var trackList = resultQ2.Result.Content.Split(',');
 
             //Third question: Duration of the poll
+            await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(null, false, new DiscordEmbedBuilder().WithDescription("**Question 3:** How long do you want the poll to last in days? (max 7)"));
 
             do
@@ -394,6 +439,8 @@ namespace CTGPPopularityTracker
 
             //Create the poll
             //Start by building the embed field, and add them to a list for easy ordering
+            await ctx.TriggerTypingAsync();
+
             var sb = new StringBuilder();
             var trackEmojiPairs = new Dictionary<DiscordEmoji, string>();
 
@@ -418,11 +465,12 @@ namespace CTGPPopularityTracker
                 Description = $"*\"{descriptionPoll}\"*",
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
-                    Text = $"This poll will end on {DateTime.UtcNow.AddDays(dayCount):dddd, dd MMMM yyyy, HH:mm UTC}"
-                }
+                    Text = "Poll end date"
+                },
+                Timestamp = DateTime.UtcNow.AddDays(dayCount)
             };
 
-            pollEmbed.AddField("Tracks to vote on", fieldString);
+            pollEmbed.AddField("Options to vote on", fieldString);
 
             //Show them the details and ask if they want to start the poll
             InteractivityResult<DiscordMessage> resultFinal;
@@ -441,12 +489,14 @@ namespace CTGPPopularityTracker
             //TIME TO SUBMIT THE POLL
             //Find the channel to send the poll in and send it
             var pollChannel = ctx.Guild.Channels[pollSettings[1]];
+            await pollChannel.TriggerTypingAsync();
             var pollMessage = await pollChannel.SendMessageAsync(null, false, pollEmbed);
 
             //Collect the reactions over the time period
             var reactions = await pollMessage.CollectReactionsAsync(TimeSpan.FromDays(dayCount));
 
             //Once time is up, print the reactions
+            await pollChannel.TriggerTypingAsync();
             sb.Clear();
             foreach (var (key, value) in trackEmojiPairs)
             {
@@ -467,7 +517,7 @@ namespace CTGPPopularityTracker
                 }
             };
 
-            pollResultsEmbed.AddField("Tracks that were voted on", fieldString);
+            pollResultsEmbed.AddField("Options that were voted on", fieldString);
             await pollChannel.SendMessageAsync(null, false, pollResultsEmbed);
         }
     }
