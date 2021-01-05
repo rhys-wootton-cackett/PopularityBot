@@ -2,6 +2,19 @@
 CHANGELOG
 ---------
 
+v2.0 - 
+-----------------
+* The bot now supports the original 32 Nintendo tracks!
+	* Commands have been reworked so you can search for either Nintendo tracks or CTGP revoluion tracks. i.e. `!nintop` will list the top 10 Nintendo tracks, and `!ctgpbottom` will list the bottom 10 CTGP Revolution tracks.
+* `!show` has been remade to `!ninlist` and `!ctgplist` with the following changes:
+	* The command now asks for a start point and end point, which should make it easier to use.
+	* It correctly lists up to 25 tracks with this change.
+
+* I have removed the breakdown of popularity in the main commands as it was starting to clog them up. If you wish to see a tracks popularity based on only WiimmFi or Time Trials, you can still use the additional arguments `wf` or `tt`.
+* Searching has been improved once again. It should now be slightly less harsh but still effective. For example, a search for 'asdf' now finds 'ASDF_Course'.
+
+* A lot of code refactoring has happened, which should make it easier to read through the command handler if you wish to!
+
 v1.4 - 02/01/2021
 -----------------
 * NEW COMMAND: '!wiki' will send a list of links to tracks based on a search parameter from the Custom Mario Kart Wiiki for tracks that are in CTGP Revolution.

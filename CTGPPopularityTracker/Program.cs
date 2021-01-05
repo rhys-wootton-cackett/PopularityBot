@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
-using System.IO.Enumeration;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CTGPPopularityTracker.Commands;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CTGPPopularityTracker
 {
@@ -64,9 +59,10 @@ namespace CTGPPopularityTracker
             {
                 StringPrefixes = new[] {"!"}
             });
-
+            
             commands.RegisterCommands<CommandHandler>();
             commands.CommandErrored += eh.OnCommandError;
+            commands.SetHelpFormatter<CustomHelpFormatter>();
 
 
             discord.UseInteractivity(new InteractivityConfiguration()

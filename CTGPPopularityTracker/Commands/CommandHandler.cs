@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Text;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -12,8 +10,15 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 
-namespace CTGPPopularityTracker
+namespace CTGPPopularityTracker.Commands
 {
+    public enum RankType
+    {
+        Top,
+        Bottom,
+        Both
+    }
+
     public class CommandHandler : BaseCommandModule
     {
 
@@ -23,6 +28,8 @@ namespace CTGPPopularityTracker
             "donations would be put straight into the DigitalOcean account, so you can feel safe knowing that the money does go directly to support the bot's hosting and development, along with helping me " +
             "work on other project to do with CTGP. Don't feel as though you need to donate, but any amount if you can donate would be very appreciated :)";
         private readonly DiscordColor _botEmbedColor = new DiscordColor("#FE0002");
+
+        private CommandResponseBuilder responseBuilder = new CommandResponseBuilder();
 
         /*
          * LINK COMMANDS
@@ -90,195 +97,110 @@ namespace CTGPPopularityTracker
          * SHOW COMMANDS
          */
 
-        [Command("showtop"), Description("Displays the top 10 most popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowTopCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
+        [Command("ctgptop"), Description("Lists the top 10 most popular tracks in CTGP Revolution."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowCtgpTopCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             await ctx.TriggerTypingAsync();
-
-            //Get the top 10, and if an option to sort by was sent, use that
-            var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
-
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = $"Last updated"
-                },
-                Timestamp = Program.Tracker.LastUpdated
-            };
-
-            //Add field to embed and send
-            var embedTitle = sortBy switch
-            {
-                "tt" => "Top 10 (Time Trial only)",
-                "wf" => "Top 10 (WiimmFi only)",
-                _ => "Top 10"
-            };
-
-            embed.AddField(embedTitle, topTen);
-            await ctx.RespondAsync(null, false, embed);
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Top, Program.Tracker.CtgpTracks, sortBy));
         }
 
-        [Command("showbottom"), Description("Displays the top 10 least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
+        [Command("nintop"), Description("Lists the top 10 most popular tracks in the base game (Mario Kart Wii)."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowNinTopCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")] string sortBy = null)
         {
             await ctx.TriggerTypingAsync();
-
-            //Get the top 10
-            var bottomTen = Program.Tracker.GetSortedListAsString(Program.Tracker.Tracks.Count, 10, true, sortBy);
-
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = $"Last updated"
-                },
-                Timestamp = Program.Tracker.LastUpdated
-            };
-
-            //Add field to embed and send
-            var embedTitle = sortBy switch
-            {
-                "tt" => "Bottom 10 (Time Trial only)",
-                "wf" => "Bottom 10 (WiimmFi only)",
-                _ => "Bottom 10"
-            };
-
-            embed.AddField(embedTitle, bottomTen);
-            await ctx.RespondAsync(null, false, embed);
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Top, Program.Tracker.NintendoTracks, sortBy));
         }
 
-        [Command("showtopbottom"), Description("Displays the top 10 most and least popular tracks on CTGP"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowTopAndBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
+        [Command("ctgpbottom"), Description("Lists the top 10 least popular tracks in CTGP Revolution."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowCtgpBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             await ctx.TriggerTypingAsync();
-
-            //Get the top 10 and bottom 10 
-            var topTen = Program.Tracker.GetSortedListAsString(0, 10, false, sortBy);
-            var bottomTen = Program.Tracker.GetSortedListAsString(Program.Tracker.Tracks.Count, 10, true, sortBy);
-
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = $"Last updated"
-                },
-                Timestamp = Program.Tracker.LastUpdated
-            };
-
-            //Add fields to embed
-            var embedTitle = sortBy switch
-            {
-                "tt" => new[] { "Top 10 (Time Trial only)", "Bottom 10 (Time Trial only)" },
-                "wf" => new[] { "Top 10 (WiimmFi only)", "Bottom 10 (WiimmFi only)" },
-                _ => new [] { "Top 10", "Bottom 10" }
-            };
-
-            embed.AddField(embedTitle[0], topTen, true);
-            embed.AddField(embedTitle[1], bottomTen, true);
-            await ctx.RespondAsync(null, false, embed);
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Bottom, Program.Tracker.CtgpTracks, sortBy));
         }
 
-        [Command("show"), Description("Lists tracks from a specific starting point down to the next x amount (x being no larger than 25)"), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task ShowTracksFromSpecificSetCommand(CommandContext ctx, 
-            [Description("The starting point of the search")]int startPoint, 
-            [Description("The amount of tracks you want to list")]int count,
+        [Command("ninbottom"), Description("Lists the top 10 least popular tracks in the base game (Mario Kart Wii)."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowNinBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")] string sortBy = null)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Bottom, Program.Tracker.NintendoTracks, sortBy));
+        }
+
+        [Command("ctgptopbottom"), Description("Lists the top 10 most and least popular tracks in CTGP Revolution."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowCtgpTopAndBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Both, Program.Tracker.CtgpTracks, sortBy));
+        }
+
+        [Command("nintopbottom"), Description("Lists the top 10 most and least popular tracks in the base game (Mario Kart Wii)."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowNinTopAndBottomCommand(CommandContext ctx, [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")] string sortBy = null)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(null, false, responseBuilder.CreateRankedEmbed(RankType.Both, Program.Tracker.NintendoTracks, sortBy));
+        }
+
+        [Command("ctgplist"), Description("Lists tracks in CTGP Revolution from a specific starting point down an end point (the gap has to be smaller than or equal to 25)"), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowCtgpTracksFromSpecificSetCommand(CommandContext ctx, 
+            [Description("The starting point of the list")]int startPoint, 
+            [Description("The ending point of the list")]int endPoint,
             [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")]string sortBy = null)
         {
             await ctx.TriggerTypingAsync();
 
-            if (count > 25 || count < 2)
+            var embed = responseBuilder.CreateRangedEmbed(Program.Tracker.CtgpTracks, startPoint, endPoint, sortBy);
+
+            if (embed.Description != null)
             {
-                await ctx.RespondAsync(
-                    "Please adjust your track count to be between 2 and 25 inclusive");
-                return;
+                var m = ctx.RespondAsync(null, false, embed);
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await m.Result.DeleteAsync();
             }
-
-            if (startPoint < 1 || startPoint > Program.Tracker.Tracks.Count)
+            else
             {
-                await ctx.RespondAsync(
-                    $"The starting point has to be between 1 and {Program.Tracker.Tracks.Count} inclusive");
-                return;
+                await ctx.RespondAsync(null, false, embed);
             }
+        }
 
-            if (startPoint + count > Program.Tracker.Tracks.Count)
+        [Command("ninlist"), Description("Lists tracks in the base game (Mario Kart Wii) from a specific starting point down an end point (the gap has to be smaller than or equal to 25)"), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task ShowNinTracksFromSpecificSetCommand(CommandContext ctx,
+            [Description("The starting point of the list")] int startPoint,
+            [Description("The ending point of the list")] int endPoint,
+            [Description("OPTIONAL: Sort by Time Trial (tt) or WiimmFi (wf)")] string sortBy = null)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var embed = responseBuilder.CreateRangedEmbed(Program.Tracker.NintendoTracks, startPoint, endPoint, sortBy);
+
+            if (embed.Description != null)
             {
-                count = Program.Tracker.Tracks.Count - startPoint + 1;
+                var m = ctx.RespondAsync(null, false, embed);
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await m.Result.DeleteAsync();
             }
-
-            //Get list
-            var tracks = Program.Tracker.GetSortedListAsString(startPoint - 1, count, false, sortBy);
-            if (tracks == null)
+            else
             {
-                await ctx.RespondAsync(
-                    "Your starting point is larger than the amount of tracks available. Try again with a " +
-                    "smaller start point.");
-                return;
+                await ctx.RespondAsync(null, false, embed);
             }
-
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Last updated" },
-                Timestamp = Program.Tracker.LastUpdated
-            };
-
-            //Add field to embed and send
-            var embedTitle = sortBy switch
-            {
-                "tt" => "Custom range (Time Trial only)",
-                "wf" => "Custom range (WiimmFi only)",
-                _ => "Custom range"
-            };
-            embed.AddField(embedTitle, tracks);
-            await ctx.RespondAsync(null, false, embed);
         }
 
         /*
          * FIND COMMANDS
          */
 
-        [Command("find"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
-        public async Task GetTracksPopularityCommand(CommandContext ctx,
+        [Command("ctgpfind"), Description("Lists the popularity of tracks in CTGP Revolution that contain the search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task GetCtgpTracksPopularityCommand(CommandContext ctx,
             [RemainingText, Description("The search parameter, followed by optional sort type (tt or wf)")] string param)
         {
             await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(null, false, responseBuilder.CreateSearchEmbed(Program.Tracker.CtgpTracks, param));
+        }
 
-            //If "wf" or "tt" is the last parameter then use them
-            var paramInput = param.Split(" ");
-
-            //Get tracks in order based on popularity
-            var tracks = paramInput[^1] switch
-            {
-                "tt" => Program.Tracker.FindTracksBasedOnParameter(param.Substring(0, param.Length - 3), "tt"),
-                "wf" => Program.Tracker.FindTracksBasedOnParameter(param.Substring(0, param.Length - 3), "wf"),
-                _ => Program.Tracker.FindTracksBasedOnParameter(param)
-            };
-
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = _botEmbedColor,
-                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Last updated" },
-                Timestamp = Program.Tracker.LastUpdated
-            };
-
-            //Add fields to embed
-            var embedTitle = paramInput[^1] switch
-            {
-                "tt" => $"Tracks containing \"{param.Substring(0, param.Length - 3)}\" (Time Trial only)",
-                "wf" => $"Tracks containing \"{param.Substring(0, param.Length - 3)}\" (WiimmFi only)",
-                _ => $"Tracks containing \"{param}\""
-            };
-            embed.AddField(embedTitle, tracks);
-            await ctx.RespondAsync(null, false, embed);
+        [Command("ninfind"), Description("Lists the popularity of tracks in the base game (Mario Kart Wii) that contain the search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
+        public async Task GetNinTracksPopularityCommand(CommandContext ctx,
+            [RemainingText, Description("The search parameter, followed by optional sort type (tt or wf)")] string param)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(null, false, responseBuilder.CreateSearchEmbed(Program.Tracker.NintendoTracks, param));
         }
 
         [Command("wiki"), Description("Finds the popularity of tracks which share the same search parameter."), Cooldown(5, 50, CooldownBucketType.User)]
@@ -287,9 +209,9 @@ namespace CTGPPopularityTracker
             string param)
         {
             await ctx.TriggerTypingAsync();
-
+        
             var tracks = Program.Tracker.FindWikiTracksBasedOnParameter(param);
-
+        
             //Craft the Embed to the user
             var embed = new DiscordEmbedBuilder
             {
@@ -301,7 +223,7 @@ namespace CTGPPopularityTracker
                     Url = "http://wiki.tockdom.com/w/skins/common/images/ct-wiki.png"
                 }
             };
-
+        
             embed.AddField($"Tracks containing \"{param}\"", tracks);
             await ctx.RespondAsync(null, false, embed);
         }
