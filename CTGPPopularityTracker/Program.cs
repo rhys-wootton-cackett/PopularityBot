@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
-using System.IO.Enumeration;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CTGPPopularityTracker.Commands;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CTGPPopularityTracker
 {
     public class Program
     {
         public static PopularityTracker Tracker = new PopularityTracker();
+        public static WikiHandler Wiki = new WikiHandler();
         private static readonly EventHandler eh = new EventHandler();
         private static string SettingsFile;
 
@@ -43,9 +39,13 @@ namespace CTGPPopularityTracker
                 // Try to get new statistics, and if it fails don't update
                 try
                 {
-                    var temp = new PopularityTracker();
-                    await temp.UpdatePopularity();
-                    Tracker = temp;
+                    var wiki = new WikiHandler();
+                    await wiki.GetWikiTrackList();
+                    Wiki = wiki;
+
+                    var track = new PopularityTracker();
+                    await track.UpdatePopularity();
+                    Tracker = track;
                 }
                 catch (Exception exception)
                 {
@@ -64,9 +64,10 @@ namespace CTGPPopularityTracker
             {
                 StringPrefixes = new[] {"!"}
             });
-
+            
             commands.RegisterCommands<CommandHandler>();
             commands.CommandErrored += eh.OnCommandError;
+            commands.SetHelpFormatter<CustomHelpFormatter>();
 
 
             discord.UseInteractivity(new InteractivityConfiguration()
