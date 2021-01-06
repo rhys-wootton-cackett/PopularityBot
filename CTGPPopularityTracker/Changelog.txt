@@ -2,18 +2,28 @@
 CHANGELOG
 ---------
 
-v2.0 - 
+v2.0 - 06/01/2021
 -----------------
+I have been working on this alongside the previous updates for a little over a week now. It does have breaking changes with a major overhaul of commands, in addition to brand new ones.
+
 * The bot now supports the original 32 Nintendo tracks!
-	* Commands have been reworked so you can search for either Nintendo tracks or CTGP revoluion tracks. i.e. `!nintop` will list the top 10 Nintendo tracks, and `!ctgpbottom` will list the bottom 10 CTGP Revolution tracks.
+	* Commands have been reworked so you can search for either Nintendo tracks or CTGP revoluion tracks. 
+	* All previous commands are still intact. You just have to replace `show` with either `nin` for Nintendo, or `ctgp` for CTGP Revolution.
+	* i.e. `!nintop` will list the top 10 Nintendo tracks, and `!ctgpbottom` will list the bottom 10 CTGP Revolution tracks.
+
+* Wiki searching has had a major overhaul!
+	* You can now search for all custom tracks that are currently on the Custom Mario Kart Wiki, not just ones that are currently in CTGP Revolution. 
+	* It now displays details straight from the wiki page in addition to a link to the page itself, so you can see the most important information right within Discord.
+	* Please bear in mind this is very new, so it might have some bugs that need ironing out. Let me know if anything goes wrong with it!
+
 * `!show` has been remade to `!ninlist` and `!ctgplist` with the following changes:
-	* The command now asks for a start point and end point, which should make it easier to use.
+	* The command now asks for a start point and end point, which should make it easier to understand and use.
 	* It correctly lists up to 25 tracks with this change.
 
 * I have removed the breakdown of popularity in the main commands as it was starting to clog them up. If you wish to see a tracks popularity based on only WiimmFi or Time Trials, you can still use the additional arguments `wf` or `tt`.
-* Searching has been improved once again. It should now be slightly less harsh but still effective. For example, a search for 'asdf' now finds 'ASDF_Course'.
+* Searching has been improved once again. It should now be slightly less harsh but still effective. This fixes an issue where a search for `asdf` couldn't find `ASDF_Course`.
 
-* A lot of code refactoring has happened, which should make it easier to read through the command handler if you wish to!
+* A lot of code refactoring has happened, which should make it easier to read through parts of the code if you wish too!
 
 v1.4 - 02/01/2021
 -----------------

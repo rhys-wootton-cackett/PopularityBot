@@ -213,20 +213,18 @@ namespace CTGPPopularityTracker
         {
             if (num <= 0) return num.ToString();
 
-            switch (num % 100)
+            return (num % 100) switch
             {
-                case 11:
-                case 12:
-                case 13:
-                    return num + "th";
-            }
-
-            return (num % 10) switch
-            {
-                1 => num + "st",
-                2 => num + "nd",
-                3 => num + "rd",
-                _ => num + "th"
+                11 => num + "th",
+                12 => num + "th",
+                13 => num + "th",
+                _ => (num % 10) switch
+                {
+                    1 => num + "st",
+                    2 => num + "nd",
+                    3 => num + "rd",
+                    _ => num + "th"
+                }
             };
         }
 
@@ -351,7 +349,6 @@ namespace CTGPPopularityTracker
         /// <summary>
         /// Generate a string containing Custom Mario Kart Wiiki links based on the tracks containing "searchParam"
         /// </summary>
-        /// <param name="dictionary">The track dictionary</param>
         /// <param name="searchParam">The search parameter</param>
         /// <returns>A string with the tracks containing the search parameter in alphabetical order</returns>
         public string FindWikiTracksBasedOnParameter(string searchParam)
@@ -402,7 +399,7 @@ namespace CTGPPopularityTracker
             return sb.Length == 0 ? "*No results found*" : sb.ToString().Substring(0, sb.Length - 1);
         }
 
-        private List<KeyValuePair<(string, string), (int, int)>> SortTrackList(IDictionary<(string, string), (int, int)> dictionary, string sortBy)
+        private static List<KeyValuePair<(string, string), (int, int)>> SortTrackList(IDictionary<(string, string), (int, int)> dictionary, string sortBy)
         {
             var tracksSorted = dictionary.ToList();
             tracksSorted.Sort((pair1, pair2) =>

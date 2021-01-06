@@ -16,6 +16,7 @@ namespace CTGPPopularityTracker
     public class Program
     {
         public static PopularityTracker Tracker = new PopularityTracker();
+        public static WikiHandler Wiki = new WikiHandler();
         private static readonly EventHandler eh = new EventHandler();
         private static string SettingsFile;
 
@@ -38,9 +39,13 @@ namespace CTGPPopularityTracker
                 // Try to get new statistics, and if it fails don't update
                 try
                 {
-                    var temp = new PopularityTracker();
-                    await temp.UpdatePopularity();
-                    Tracker = temp;
+                    var wiki = new WikiHandler();
+                    await wiki.GetWikiTrackList();
+                    Wiki = wiki;
+
+                    var track = new PopularityTracker();
+                    await track.UpdatePopularity();
+                    Tracker = track;
                 }
                 catch (Exception exception)
                 {

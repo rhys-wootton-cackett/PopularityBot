@@ -209,23 +209,46 @@ namespace CTGPPopularityTracker.Commands
             string param)
         {
             await ctx.TriggerTypingAsync();
-        
-            var tracks = Program.Tracker.FindWikiTracksBasedOnParameter(param);
-        
-            //Craft the Embed to the user
-            var embed = new DiscordEmbedBuilder
+            var tracks = Program.Wiki.FindWikiTracks(param);
+            string trackWanted;
+
+            //If no tracks found, tell them that!
+            if (tracks.Length < 1)
             {
-                Color = _botEmbedColor,
-                Title = "Custom Mario Kart Wiiki",
-                Description = "A track may have multiple versions by multiple authors. If so, the link will take you to a page showcasing all versions available.",
-                Thumbnail = new DiscordEmbedBuilder.EmbedThumbnail()
+                var embed = responseBuilder.EmbedBaseTemplate.ClearFields().WithDescription(
+                    "*No tracks were found in your search. Check your spelling or try searching for something else.*");
+                var m = ctx.RespondAsync(null, false, embed);
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await m.Result.DeleteAsync();
+                return;
+            } 
+
+            //We know at least 1 track exists, so set it to the first one in the list
+            trackWanted = tracks[0];
+            
+            //If more than 1 track was found, ask for a specific one
+            if (tracks.Length > 1)
+            {
+                var responseMax = tracks.Length > 15 ? 15 : tracks.Length;
+                var response = 0;
+                var m =  ctx.RespondAsync(null, false, responseBuilder.CreateWikiSelectEmbed(tracks, param));
+
+                do
                 {
-                    Url = "http://wiki.tockdom.com/w/skins/common/images/ct-wiki.png"
-                }
-            };
-        
-            embed.AddField($"Tracks containing \"{param}\"", tracks);
-            await ctx.RespondAsync(null, false, embed);
+                    await ctx.Message.GetNextMessageAsync(m => int.TryParse(m.Content, out response));
+                } while (response > responseMax || response < 0);
+
+                await m.Result.DeleteAsync();
+
+                if (response == 0) return;
+                trackWanted = tracks[response - 1];
+            }
+
+            await ctx.TriggerTypingAsync();
+
+            //Get the wiki info and send it
+            var trackInfo = await Program.Wiki.GetWikiTrackAsync(trackWanted);
+            await ctx.RespondAsync(null, false, responseBuilder.CreateWikiTrackEmbed(trackInfo));
         }
 
         /*

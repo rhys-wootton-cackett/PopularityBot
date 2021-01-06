@@ -61,7 +61,7 @@ namespace CTGPPopularityTracker
                         {
                             Color = new DiscordColor("#FE0002"),
                             Description = "An internal server error has occurred. I am probably trying to grab the popularity for the first time, " +
-                                          "so please wait a few minutes and then try again. If it still doesn't work, report it to the developer."
+                                          "so please wait a few minutes and then try again. If it still doesn't work, report it RhysRah#2212 on Discord."
                         };
                         var m = e.Context?.Channel?.SendMessageAsync("", false, error);
                         await Task.Delay(TimeSpan.FromSeconds(15));

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -11,12 +12,12 @@ namespace CTGPPopularityTracker.Commands
 {
     public class CommandResponseBuilder
     {
-        private readonly DiscordEmbedBuilder _embedBaseTemplate;
-        private readonly DiscordEmbedBuilder _embedListTemplate;
+        public DiscordEmbedBuilder EmbedBaseTemplate { get; }
+        private DiscordEmbedBuilder _embedListTemplate, _embedWikiTemplate;
 
         public CommandResponseBuilder()
         {
-            _embedBaseTemplate = new DiscordEmbedBuilder
+            EmbedBaseTemplate = new DiscordEmbedBuilder
             {
                 Color = new DiscordColor("#FE0002")
             };
@@ -27,6 +28,15 @@ namespace CTGPPopularityTracker.Commands
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
                     Text = $"Last updated"
+                }
+            };
+
+            _embedWikiTemplate = new DiscordEmbedBuilder()
+            {
+                Color = new DiscordColor("#FE0002"),
+                Thumbnail = new DiscordEmbedBuilder.EmbedThumbnail()
+                {
+                    Url = "http://wiki.tockdom.com/w/skins/common/images/ct-wiki.png"
                 }
             };
         }
@@ -77,21 +87,29 @@ namespace CTGPPopularityTracker.Commands
             return embed;
         }
 
+        /// <summary>
+        /// Creates an embed for the specific ranged command issued to it from the command handler.
+        /// </summary>
+        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="start">The start point</param>
+        /// <param name="end">The end point</param>
+        /// <param name="sortby">What to sort the ranking by</param>
+        /// <returns></returns>
         public DiscordEmbed CreateRangedEmbed(IDictionary<(string, string), (int, int)> dictionary, int start, int end,
             string sortby)
         {
             var embed = _embedListTemplate.ClearFields().WithTimestamp(Program.Tracker.LastUpdated);
 
-            if (end - start < 1) return _embedBaseTemplate.WithDescription(
+            if (end - start < 1) return EmbedBaseTemplate.WithDescription(
                     "*Please adjust your end point. It has to be greater than your start point.*");
 
-            if (end - start > 24) return _embedBaseTemplate.WithDescription(
+            if (end - start > 24) return EmbedBaseTemplate.WithDescription(
                 "*Please adjust your end point. I can only list 25 tracks at a time.*");
 
-            if (start < 1) return _embedBaseTemplate.WithDescription(
+            if (start < 1) return EmbedBaseTemplate.WithDescription(
                     "*Please adjust your start point. It has to be greater than or equal to 1.*");
 
-            if (start > dictionary.Count) return _embedBaseTemplate.WithDescription(
+            if (start > dictionary.Count) return EmbedBaseTemplate.WithDescription(
                 $"*Please adjust your start point. It has to be less than the number of tracks available ({dictionary.Count})*");
 
             var tracks = start + (end - start) > dictionary.Count ? 
@@ -110,6 +128,12 @@ namespace CTGPPopularityTracker.Commands
             return embed;
         }
 
+        /// <summary>
+        /// Creates an embed for the specific search command issued to it from the command handler.
+        /// </summary>
+        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="search">The search parameter</param>
+        /// <returns></returns>
         public DiscordEmbed CreateSearchEmbed(IDictionary<(string, string), (int, int)> dictionary, string search)
         {
             var embed = _embedListTemplate.ClearFields().WithTimestamp(Program.Tracker.LastUpdated);
@@ -132,6 +156,37 @@ namespace CTGPPopularityTracker.Commands
             };
 
             embed.AddField(fieldTitle, tracks);
+            return embed;
+        }
+
+        public DiscordEmbed CreateWikiSelectEmbed(string[] trackList, string search)
+        {
+            var sb = new StringBuilder();
+            var embed = EmbedBaseTemplate.ClearFields().WithDescription(
+                "I have found more than one track that fits your criteria. Please respond with the number corresponding to the track you wish to see. If you don't wish to see any, respond with **0**.");
+
+            for (var i = 0; i < trackList.Length && i < 15; i++)
+            {
+                sb.Append($"**{i + 1}:** {trackList[i]}\n");
+            }
+
+            if (trackList.Length > 15) sb.Append("\n*Only showing the first 25 matches. Refine your search.*");
+
+            embed.AddField($"Wiki tracks containing {search}", sb.ToString());
+
+            return embed;
+        }
+
+        public DiscordEmbed CreateWikiTrackEmbed(Dictionary<string, string> track)
+        {
+            var embed = _embedWikiTemplate.ClearFields().WithTitle(track["Name"]).WithDescription(track["Description"]).WithUrl(new Uri(track["Url"]));
+
+            foreach (var (key, value) in track.Where(kvp => 
+                !kvp.Key.Equals("Name") && !kvp.Key.Equals("Url") && !kvp.Key.Equals("Description")))
+            {
+                embed.AddField(key, value, true);
+            }
+
             return embed;
         }
     }
