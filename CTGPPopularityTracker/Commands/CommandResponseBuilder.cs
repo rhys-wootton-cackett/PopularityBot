@@ -148,11 +148,18 @@ namespace CTGPPopularityTracker.Commands
                 _ => Program.Tracker.FindTracksBasedOnParameter(dictionary, search)
             };
 
-            var fieldTitle = paramInput[^1] switch
+            var fieldTitle = dictionary.Count switch
             {
-                "tt" => $"Tracks containing \"{search.Substring(0, search.Length - 3)}\" (Time Trial only)",
-                "wf" => $"Tracks containing \"{search.Substring(0, search.Length - 3)}\" (WiimmFi only)",
-                _ => $"Tracks containing \"{search}\""
+                32 => "Nintendo ",
+                218 => "CTGP ",
+                _ => ""
+            };
+
+            fieldTitle += paramInput[^1] switch
+            {
+                "tt" => $"tracks containing \"{search.Substring(0, search.Length - 3)}\" (Time Trial only)",
+                "wf" => $"tracks containing \"{search.Substring(0, search.Length - 3)}\" (WiimmFi only)",
+                _ => $"tracks containing \"{search}\""
             };
 
             embed.AddField(fieldTitle, tracks);
