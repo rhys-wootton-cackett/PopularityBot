@@ -8,12 +8,12 @@ using DSharpPlus.CommandsNext.Attributes;
 
 namespace CTGPPopularityTracker
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     public class RequirePollStartChannelAttribute : CheckBaseAttribute
     {
         public override Task<bool> ExecuteCheckAsync(CommandContext ctx, bool help)
         {
-            return Task.FromResult(ctx.Channel.Id == Program.GetPollSettings(ctx.Guild.Id)[2]);
+            return null;
         }
     }
 }
