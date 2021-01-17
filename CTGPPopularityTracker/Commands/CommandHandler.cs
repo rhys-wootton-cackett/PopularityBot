@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
@@ -334,12 +335,19 @@ namespace CTGPPopularityTracker.Commands
 
         }
 
-        [Command("startpoll"), Description("Starts the process of starting a poll."), RequirePollStartChannel]
+        [Command("startpoll"), Description("Starts the process of starting a poll.")]
         public async Task StartPollCommand(CommandContext ctx)
         {
             string[] squareBoxes = { ":red_square:", ":green_square:", ":blue_square:", ":yellow_square:", 
                 ":brown_square:", ":purple_square:", ":orange_square:" };
             var dayCount = int.MaxValue;
+
+            //Check that it can be run in the channel
+            if (ctx.Channel.Id != Program.GetPollSettings(ctx.Guild.Id)[2])
+            {
+                var checkList = new List<CheckBaseAttribute> { new RequirePollStartChannelAttribute() };
+                throw new ChecksFailedException(ctx.Command, ctx, checkList);
+            }
 
             //Load the right settings for the server
             await ctx.TriggerTypingAsync();
