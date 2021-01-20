@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -12,8 +13,8 @@ namespace CTGPPopularityTracker
 {
     public class PopularityTracker
     {
-        public Dictionary<(string, string), (int, int)> CtgpTracks { get; }
-        public Dictionary<(string, string), (int, int)> NintendoTracks { get; }
+        public List<Track> CtgpTracks { get; }
+        public List<Track> NintendoTracks { get; }
 
         public DateTime LastUpdated { get; set; }
 
@@ -21,12 +22,11 @@ namespace CTGPPopularityTracker
         private const string NintendoTtLink = "http://tt.chadsoft.co.uk/original-track-leaderboards.json";
         private const string CtgpWiimmFiLink = "https://wiimmfi.de/stats/track/wv/ctgp?p=std,c0,0,";
         private const string NintendoWiimmFiLink = "https://wiimmfi.de/stats/track/wv/all?p=std,c0,0";
-        private const string WikiLink = "http://wiki.tockdom.com/wiki/";
 
         public PopularityTracker()
         {
-            CtgpTracks = new Dictionary<(string, string), (int, int)>();
-            NintendoTracks = new Dictionary<(string, string), (int, int)>();
+            CtgpTracks = new List<Track>();
+            NintendoTracks = new List<Track>();
         }
 
         /// <summary>
@@ -46,14 +46,14 @@ namespace CTGPPopularityTracker
             LastUpdated = DateTime.Now;
 
             Console.WriteLine("Updated track list");
-            
+
         }
 
         /// <summary>
         /// Gets the popularity from the CTGP Time Trial JSON API and adds them to
         /// the Tracks dictionary.
         /// </summary>
-        private static async Task GetTimeTrialPopularity(string link, IDictionary<(string, string), (int, int)> dictionary)
+        private static async Task GetTimeTrialPopularity(string link, List<Track> tracks)
         {
             //Connect to the API and put it in a JSON object
             Console.WriteLine("Grabbing latest TT data from API...");
@@ -67,22 +67,20 @@ namespace CTGPPopularityTracker
             if (jsonTt != null)
                 foreach (var trackJson in jsonTt.leaderboards)
                 {
-                    string trackName = trackJson.name;
-                    string trackId = trackJson.trackId;
+                    var existingTrack = tracks.FindIndex(t => t.SHA1.Contains(trackJson.trackId.ToString()));
 
-                    trackId = trackId.ToLower();
-
-                    var track = (trackName, trackID: trackId);
-
-                    if (!dictionary.ContainsKey(track))
+                    if (existingTrack < 0)
                     {
-                        dictionary.Add(track, (trackJson.popularity, 0));
+                        tracks.Add(new Track()
+                        {
+                            Name = trackJson.name, 
+                            SHA1 = trackJson.trackId,
+                            TimeTrialScore = trackJson.popularity
+                        });
                     }
                     else
                     {
-                        var newPopularity = dictionary[track];
-                        newPopularity.Item1 += (int) trackJson.popularity;
-                        dictionary[track] = newPopularity;
+                        tracks[existingTrack].TimeTrialScore += int.Parse(trackJson.popularity.ToString());
                     }
                 }
         }
@@ -92,7 +90,7 @@ namespace CTGPPopularityTracker
         /// and adds them to the current Tracks dictionary.
         /// </summary>
         /// <returns></returns>
-        private static async Task GetWiimmFiPopularity(string link, int trackListSize, IDictionary<(string, string), (int, int)> dictionary)
+        private static async Task GetWiimmFiPopularity(string link, int trackListSize, List<Track> tracks)
         {
             //Increment this counter by 100 each time.
             int startPoint = 0, tracksUpdated = 0;
@@ -118,25 +116,27 @@ namespace CTGPPopularityTracker
                     //If cells is null, then skip
                     if (cells == null) continue;
 
-                    var trackName = cells[2].InnerText;
+                    var trackShaOnPage = cells[2].InnerText;
 
-                    var trackPopularity = CalculateWiimmFiTrackPopularity(cells);
+                    if (trackShaOnPage.Contains("SHA1:"))
+                    {
+                        Console.WriteLine("Testing time!");
+                    }
 
-                    var trackKey = dictionary.Keys.FirstOrDefault(key =>
-                        key.Item2 != null && (trackName.Contains(key.Item2)));
+                    var trackIndex = tracks.FindIndex(t => trackShaOnPage.ToUpper().Contains(t.SHA1));
 
                     //If the SHA1 is already on the page, just use that
-                    if (!(trackKey.Item1 == null && trackKey.Item2 == null))
+                    if (trackIndex >= 0)
                     {
-                        var wiimmPopularityTrack = dictionary[trackKey];
-                        wiimmPopularityTrack.Item2 = trackPopularity;
-                        dictionary[trackKey] = wiimmPopularityTrack;
+                        tracks[trackIndex].TrackAdded = DateTime.Parse(Regex.Replace(cells[8].Attributes["title"].Value, "UTC.*", ""));
+                        if (cells[7].InnerText.Contains("–")) tracks[trackIndex].WiimmFiScore = 0;
+                        else tracks[trackIndex].WiimmFiScore = double.Parse(cells[7].InnerText);
 
                         //Log the track that was updated
-                        Console.WriteLine($"Updated track: {trackKey.Item1} (TT: {dictionary[trackKey].Item1}, WF: {dictionary[trackKey].Item2})");
+                        Console.WriteLine($"Updated track: {tracks[trackIndex].Name} (TT: {tracks[trackIndex].TimeTrialScore}, WF: {tracks[trackIndex].WiimmFiScore})");
                         tracksUpdated++;
 
-                        if (tracksUpdated == 218) return;
+                        if (tracksUpdated == trackListSize) return;
                         continue;
                     }
 
@@ -153,55 +153,38 @@ namespace CTGPPopularityTracker
                     foreach (var row2 in doc2.DocumentNode.SelectNodes("/html/body/div[5]/table/tr[position() > 1]"))
                     {
                         if (!row2.SelectNodes("td")[0].InnerText.Contains("SHA1")) continue;
-                        var hashes = row2.SelectNodes("td")[1].InnerText.Split("<br>");
+                        var hashes = row2.SelectNodes("td")[1].InnerText.Split(40);
                         trackPossibleSha1.AddRange(hashes);
                     }
 
                     //Check the hashes like above, but only check against the second key
-                    foreach (var hashKey in trackPossibleSha1.Select(hash => dictionary.Keys.FirstOrDefault(key =>
-                            key.Item2 != null && hash.Contains(key.Item2)))
-                        .Where(hashKey => hashKey.Item1 != null || hashKey.Item2 != null))
+                    foreach (var hash in trackPossibleSha1)
                     {
-                        var wiimmPopularitySha = dictionary[hashKey];
-                        wiimmPopularitySha.Item2 = trackPopularity;
-                        dictionary[hashKey] = wiimmPopularitySha;
+                        var trackIndex2 = tracks.FindIndex(t => t.SHA1.Contains(hash.ToUpper()));
+                        if (trackIndex2 >= 0)
+                        {
+                            tracks[trackIndex2].TrackAdded = DateTime.Parse(Regex.Replace(cells[8].Attributes["title"].Value, "UTC.*", ""));
+                            if (cells[7].InnerText.Contains("–")) tracks[trackIndex2].WiimmFiScore = 0;
+                            else tracks[trackIndex2].WiimmFiScore = double.Parse(cells[7].InnerText);
 
-                        //Log the track that was updated
-                        Console.WriteLine($"Updated track: {hashKey.Item1} (TT: {dictionary[hashKey].Item1}, WF: {dictionary[hashKey].Item2})");
-                        tracksUpdated++;
+                            //Log the track that was updated
+                            Console.WriteLine($"Updated track: {tracks[trackIndex2].Name} (TT: {tracks[trackIndex2].TimeTrialScore}, WF: {tracks[trackIndex2].WiimmFiScore})");
+                            tracksUpdated++;
 
-                        if (tracksUpdated == trackListSize) return;
+                            if (tracksUpdated == trackListSize) return;
+                        }
                     }
                 }
 
                 //Change the value to adjust URL
                 startPoint += 100;
+
+                if (startPoint <= 200) continue;
+                foreach (var track in tracks.Where(track => track.WiimmFiScore == 0))
+                {
+                    Console.WriteLine(track.Name);
+                }
             }
-        }
-
-        /// <summary>
-        /// Calculates popularity for WiimmFi statistics, which is determined using an
-        /// exponentially decaying function based on the number of times a track has been
-        /// played over a 3 week period.
-        /// https://docs.google.com/document/d/1C8grliYKX-d5vtrzCJ8DM1oAyANC2sTTfOzBlJeMzaQ/edit?usp=sharing
-        /// </summary>
-        /// <param name="trackCells">The track cells from WiimmFi</param>
-        /// <returns>The popularity of the track.</returns>
-        private static int CalculateWiimmFiTrackPopularity(HtmlNodeCollection trackCells)
-        {
-            //Start by getting the date it was added
-            var dateString = Regex.Replace(trackCells[8].Attributes["title"].Value, "UTC.*", "");
-            var date = DateTime.Parse(dateString);
-
-            //Work out how many weeks need to be accounted for
-            long days = (DateTime.UtcNow - date).Days <= 84 ? (DateTime.UtcNow - date).Days : 84;
-
-            //Run the mathematical function
-            if (trackCells[7].InnerText.Contains("–")) return 0;
-
-            var popularity = double.Parse(trackCells[7].InnerText) * Math.Pow(0.5, (days / 7.0) / 4);
-
-            return (int)Math.Round(popularity);
         }
 
         /// <summary>
@@ -233,54 +216,38 @@ namespace CTGPPopularityTracker
         /// If 'reverse' is specified, it will generate a list in descending order. It can sort by overall
         /// popularity or by specifics.
         /// </summary>
-        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="tracks">The track list</param>
         /// <param name="startPoint">The starting point for the list</param>
         /// <param name="count">The number of Tracks you want</param>
         /// <param name="reverse">True if wanting list in descending order</param>
         /// <param name="sortBy">How to sort the list according to a specific popularity value</param>
         /// <returns>A string with the tracks in order</returns>
-        public string GetSortedListAsString(IDictionary<(string, string), (int, int)> dictionary, int startPoint, int count, bool reverse = false, string sortBy = null)
+        public string GetSortedListAsString(List<Track> tracks, int startPoint, int count, bool reverse = false, string sortBy = null)
         {
             //Check that variables will work, and if not just reject the command
-            if (startPoint > dictionary.Count) return null;
+            if (startPoint > tracks.Count) return null;
 
             // Sort all tracks by sortBy value
-            var tracksSorted = SortTrackList(dictionary, sortBy);
+            var tracksSorted = SortTrackList(tracks, sortBy);
 
             //Put list into a string separated by new lines (two spaces)
             var sb = new StringBuilder();
 
-            if (reverse)
+            for (var i = 0; i < count; i++)
             {
-                for (var i = startPoint; i > startPoint - count; i--)
-                {
-                    //Format string according to sortBy
-                    var trackLine = sortBy switch
-                    {
-                        "tt" => $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item1})\n",
-                        "wf" => $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item2})\n",
-                        _ =>
-                            $"**{AddOrdinal(i)}:** {tracksSorted[i - 1].Key.Item1} ({tracksSorted[i - 1].Value.Item1 + tracksSorted[i - 1].Value.Item2})\n"
-                    };
+                //If reverse, start from the end of the list
+                var placement = reverse ? tracks.Count - 1 - i : startPoint + i;
 
-                    sb.Append(trackLine);
-                }
-            }
-            else
-            {
-                for (var i = startPoint; i < startPoint + count; i++)
+                //Format string according to sortBy
+                var trackLine = sortBy switch
                 {
-                    //Format string according to sortBy
-                    var trackLine = sortBy switch
-                    {
-                        "tt" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1})\n",
-                        "wf" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item2})\n",
-                        _ =>
-                            $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2})\n"
-                    };
+                    "tt" => $"**{AddOrdinal(placement + 1)}:** {tracksSorted[placement].Name} ({tracksSorted[placement].TimeTrialScore})\n",
+                    "wf" => $"**{AddOrdinal(placement + 1)}:** {tracksSorted[placement].Name} ({(int)(tracksSorted[placement].WiimmFiScore)})\n",
+                    _ =>
+                        $"**{AddOrdinal(placement + 1)}:** {tracksSorted[placement].Name} ({(int)(tracksSorted[placement].TimeTrialScore + tracksSorted[placement].WiimmFiScore)})\n"
+                };
 
-                    sb.Append(trackLine);
-                }
+                sb.Append(trackLine);
             }
 
             return sb.ToString().Substring(0, sb.Length - 1);
@@ -289,20 +256,20 @@ namespace CTGPPopularityTracker
         /// <summary>
         /// Generate a string containing tracks that contain 'searchParam' in ascending order.
         /// </summary>
-        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="tracks">The track list</param>
         /// <param name="searchParam">The search parameter</param>
         /// <param name="sortBy">How to sort the list according to a specific popularity value</param>
         /// <returns>A string with the tracks containing the search parameter in order</returns>
-        public string FindTracksBasedOnParameter(IDictionary<(string, string), (int, int)> dictionary, string searchParam, string sortBy = null)
+        public string FindTracksBasedOnParameter(List<Track> tracks, string searchParam, string sortBy = null)
         {
             // Sort all tracks by sortBy value
-            var tracksSorted = SortTrackList(dictionary, sortBy);
+            var tracksSorted = SortTrackList(tracks, sortBy);
 
             var sb = new StringBuilder();
             var count = 0;
 
             //Loop through the list
-            for (var i = 0; i < dictionary.Count; i++)
+            for (var i = 0; i < tracks.Count; i++)
             {
                 var found = false;
 
@@ -311,7 +278,7 @@ namespace CTGPPopularityTracker
                 if (searchParam.Length <= 3)
                 {
                     //Split track name into an array, and search equality of exact words.
-                    var trackWords = tracksSorted[i].Key.Item1.Split(' ');
+                    var trackWords = tracksSorted[i].Name.Split(' ');
 
                     foreach (var word in trackWords)
                     {
@@ -321,20 +288,19 @@ namespace CTGPPopularityTracker
                 }
                 else
                 {
-                    if (tracksSorted[i].Key.Item1.ToLower().Contains(searchParam.ToLower())) found = true;
+                    if (tracksSorted[i].Name.ToLower().Contains(searchParam.ToLower())) found = true;
                 }
 
                 //If not found, loop again
                 if (!found) continue;
 
-                //Get the sum of the popularity
                 //Format string according to sortBy
                 var trackLine = sortBy switch
                 {
-                    "tt" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1})\n",
-                    "wf" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item2})\n",
+                    "tt" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Name} ({tracksSorted[i].TimeTrialScore})\n",
+                    "wf" => $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Name} ({(int)(tracksSorted[i].WiimmFiScore)})\n",
                     _ =>
-                        $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Key.Item1} ({tracksSorted[i].Value.Item1 + tracksSorted[i].Value.Item2})\n"
+                        $"**{AddOrdinal(i + 1)}:** {tracksSorted[i].Name} ({(int)(tracksSorted[i].TimeTrialScore + tracksSorted[i].WiimmFiScore)})\n"
                 };
 
                 sb.Append(trackLine);
@@ -346,79 +312,16 @@ namespace CTGPPopularityTracker
             return sb.Length == 0 ? "*No results found*" : sb.ToString().Substring(0, sb.Length - 1);
         }
 
-        /// <summary>
-        /// Generate a string containing Custom Mario Kart Wiiki links based on the tracks containing "searchParam"
-        /// </summary>
-        /// <param name="searchParam">The search parameter</param>
-        /// <returns>A string with the tracks containing the search parameter in alphabetical order</returns>
-        public string FindWikiTracksBasedOnParameter(string searchParam)
+        private static List<Track> SortTrackList(List<Track> tracks, string sortBy)
         {
-            //First sort the list in alphabetical order
-            var tracksSorted = CtgpTracks.ToList();
-            tracksSorted.Sort((pair1, pair2) => string.Compare(pair1.Key.Item1, pair2.Key.Item1, StringComparison.Ordinal));
-
-            var sb = new StringBuilder();
-            var count = 0;
-
-            //Loop through the list
-            for (var i = 0; i < CtgpTracks.Count; i++)
+            tracks = new List<Track>(sortBy switch
             {
-                var found = false;
-
-                //If the search parameter is 3 characters or less, look through words only.
-                //Otherwise, search using contains
-                if (searchParam.Length <= 3)
-                {
-                    //Split track name into an array, and search equality of exact words.
-                    var trackWords = tracksSorted[i].Key.Item1.Split(' ');
-
-                    foreach (var word in trackWords)
-                    {
-                        if (!word.ToLower().Equals(searchParam.ToLower())) continue;
-                        found = true;
-                    }
-                }
-                else
-                {
-                    if (tracksSorted[i].Key.Item1.ToLower().Contains(searchParam.ToLower())) found = true;
-                }
-
-                //If not found, loop again
-                if (!found) continue;
-
-                //Get the sum of the popularity
-                //Format string according to 
-                var trackLine =
-                    $"**•** [{tracksSorted[i].Key.Item1}]({WikiLink}{Uri.EscapeDataString(tracksSorted[i].Key.Item1)})\n";
-                sb.Append(trackLine);
-                count++;
-                if (count == 10) break;
-            }
-
-            if (count == 10) sb.Append("\n*Only showing the first 10 matches. Refine your search.*\n");
-            return sb.Length == 0 ? "*No results found*" : sb.ToString().Substring(0, sb.Length - 1);
-        }
-
-        private static List<KeyValuePair<(string, string), (int, int)>> SortTrackList(IDictionary<(string, string), (int, int)> dictionary, string sortBy)
-        {
-            var tracksSorted = dictionary.ToList();
-            tracksSorted.Sort((pair1, pair2) =>
-            {
-                switch (sortBy)
-                {
-                    //If sortBy is null, use the sum
-                    case "tt":
-                        return pair2.Value.Item1.CompareTo(pair1.Value.Item1);
-                    case "wf":
-                        return pair2.Value.Item2.CompareTo(pair1.Value.Item2);
-                    default:
-                        var pair2Sum = pair2.Value.Item1 + pair2.Value.Item2;
-                        var pair1Sum = pair1.Value.Item1 + pair1.Value.Item2;
-                        return pair2Sum.CompareTo(pair1Sum);
-                }
+                "wf" => tracks.OrderByDescending(t => t.WiimmFiScore),
+                "tt" => tracks.OrderByDescending(t => t.TimeTrialScore),
+                _ => tracks.OrderByDescending(t => t.Popularity)
             });
 
-            return tracksSorted;
+            return tracks;
         }
     }
 }

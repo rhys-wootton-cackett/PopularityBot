@@ -2,6 +2,12 @@
 CHANGELOG
 ---------
 
+v2.0.1 - 17/01/2021
+-------------------
+* Updated dependicies to their latest version.
+* Searching for a track's popularity now displays if it is for Nintendo or CTGP tracks.
+* The help dialog has been reworked.
+
 v2.0 - 06/01/2021
 -----------------
 I have been working on this alongside the previous updates for a little over a week now. It does have breaking changes with a major overhaul of commands, in addition to brand new ones.

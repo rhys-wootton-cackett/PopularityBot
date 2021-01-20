@@ -81,8 +81,8 @@ namespace CTGPPopularityTracker.Commands
             }
 
             //Add fields to help
-            this.EmbedBuilder.AddField("Popularity Commands - CTGP", sbList[0].ToString().Remove(sbList[0].Length - 2));
-            this.EmbedBuilder.AddField("Popularity Commands - Nintendo", sbList[1].ToString().Remove(sbList[1].Length - 2));
+            this.EmbedBuilder.AddField("Popularity Commands - Nintendo", sbList[0].ToString().Remove(sbList[0].Length - 2));
+            this.EmbedBuilder.AddField("Popularity Commands - CTGP", sbList[1].ToString().Remove(sbList[1].Length - 2));
             this.EmbedBuilder.AddField("Poll Commands", sbList[2].ToString().Remove(sbList[2].Length - 2));
             this.EmbedBuilder.AddField("Other Commands", sbList[3].ToString().Remove(sbList[3].Length - 2));
             
