@@ -45,20 +45,19 @@ namespace CTGPPopularityTracker.Commands
         /// Creates an embed for the specific rank command issued to it from the command handler.
         /// </summary>
         /// <param name="type">The type of ranking.</param>
-        /// <param name="dictionary">The track dictionary.</param>
+        /// <param name="tracks">The track list.</param>
         /// <param name="sortby">What to sort the ranking by</param>
         /// <returns></returns>
-        public DiscordEmbed CreateRankedEmbed(RankType type, IDictionary<(string, string), (int, int)> dictionary,
-            string sortby)
+        public DiscordEmbed CreateRankedEmbed(RankType type, List<Track> tracks, string sortby)
         {
             var embed = _embedListTemplate.ClearFields().WithTimestamp(Program.Tracker.LastUpdated);
 
             //Create the fields depending on rank type.
             if (type != RankType.Bottom)
             {
-                var top = Program.Tracker.GetSortedListAsString(dictionary, 0, 10, false, sortby);
+                var top = Program.Tracker.GetSortedListAsString(tracks, 0, 10, false, sortby);
 
-                var fieldTitle = dictionary.Count == 32 ? "Nintendo - " : "CTGP - ";
+                var fieldTitle = tracks.Count == 32 ? "Nintendo - " : "CTGP - ";
                 fieldTitle += sortby switch
                 {
                     "tt" => "Top 10 (Time Trial)",
@@ -71,9 +70,9 @@ namespace CTGPPopularityTracker.Commands
 
             if (type != RankType.Top)
             {
-                var bottom = Program.Tracker.GetSortedListAsString(dictionary, dictionary.Count, 10, true, sortby);
+                var bottom = Program.Tracker.GetSortedListAsString(tracks, tracks.Count, 10, true, sortby);
 
-                var fieldTitle = dictionary.Count == 32 ? "Nintendo - " : "CTGP - ";
+                var fieldTitle = tracks.Count == 32 ? "Nintendo - " : "CTGP - ";
                 fieldTitle += sortby switch
                 {
                     "tt" => "Bottom 10 (Time Trial)",
@@ -90,13 +89,12 @@ namespace CTGPPopularityTracker.Commands
         /// <summary>
         /// Creates an embed for the specific ranged command issued to it from the command handler.
         /// </summary>
-        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="tracks">The track list</param>
         /// <param name="start">The start point</param>
         /// <param name="end">The end point</param>
         /// <param name="sortby">What to sort the ranking by</param>
         /// <returns></returns>
-        public DiscordEmbed CreateRangedEmbed(IDictionary<(string, string), (int, int)> dictionary, int start, int end,
-            string sortby)
+        public DiscordEmbed CreateRangedEmbed(List<Track> tracks, int start, int end, string sortby)
         {
             var embed = _embedListTemplate.ClearFields().WithTimestamp(Program.Tracker.LastUpdated);
 
@@ -109,14 +107,14 @@ namespace CTGPPopularityTracker.Commands
             if (start < 1) return EmbedBaseTemplate.WithDescription(
                     "*Please adjust your start point. It has to be greater than or equal to 1.*");
 
-            if (start > dictionary.Count) return EmbedBaseTemplate.WithDescription(
-                $"*Please adjust your start point. It has to be less than the number of tracks available ({dictionary.Count})*");
+            if (start > tracks.Count) return EmbedBaseTemplate.WithDescription(
+                $"*Please adjust your start point. It has to be less than the number of tracks available ({tracks.Count})*");
 
-            var tracks = start + (end - start) > dictionary.Count ? 
-                Program.Tracker.GetSortedListAsString(dictionary, start - 1, dictionary.Count - start + 1, false, sortby) : 
-                Program.Tracker.GetSortedListAsString(dictionary, start - 1, end - start + 1, false, sortby);
+            var rangedTracks = start + (end - start) > tracks.Count ? 
+                Program.Tracker.GetSortedListAsString(tracks, start - 1, tracks.Count - start + 1, false, sortby) : 
+                Program.Tracker.GetSortedListAsString(tracks, start - 1, end - start + 1, false, sortby);
 
-            var fieldTitle = dictionary.Count == 32 ? "Nintendo - " : "CTGP - ";
+            var fieldTitle = tracks.Count == 32 ? "Nintendo - " : "CTGP - ";
             fieldTitle += sortby switch
             {
                 "tt" => "Custom range (Time Trial)",
@@ -124,31 +122,31 @@ namespace CTGPPopularityTracker.Commands
                 _ => "Custom range"
             };
 
-            embed.AddField(fieldTitle, tracks);
+            embed.AddField(fieldTitle, rangedTracks);
             return embed;
         }
 
         /// <summary>
         /// Creates an embed for the specific search command issued to it from the command handler.
         /// </summary>
-        /// <param name="dictionary">The track dictionary</param>
+        /// <param name="tracks">The track list</param>
         /// <param name="search">The search parameter</param>
         /// <returns></returns>
-        public DiscordEmbed CreateSearchEmbed(IDictionary<(string, string), (int, int)> dictionary, string search)
+        public DiscordEmbed CreateSearchEmbed(List<Track> tracks, string search)
         {
             var embed = _embedListTemplate.ClearFields().WithTimestamp(Program.Tracker.LastUpdated);
 
             var paramInput = search.Split(" ");
             
             //Get tracks in order based on popularity
-            var tracks = paramInput[^1] switch
+            var searchTracks = paramInput[^1] switch
             {
-                "tt" => Program.Tracker.FindTracksBasedOnParameter(dictionary, search.Substring(0, search.Length - 3), "tt"),
-                "wf" => Program.Tracker.FindTracksBasedOnParameter(dictionary, search.Substring(0, search.Length - 3), "wf"),
-                _ => Program.Tracker.FindTracksBasedOnParameter(dictionary, search)
+                "tt" => Program.Tracker.FindTracksBasedOnParameter(tracks, search.Substring(0, search.Length - 3), "tt"),
+                "wf" => Program.Tracker.FindTracksBasedOnParameter(tracks, search.Substring(0, search.Length - 3), "wf"),
+                _ => Program.Tracker.FindTracksBasedOnParameter(tracks, search)
             };
 
-            var fieldTitle = dictionary.Count switch
+            var fieldTitle = tracks.Count switch
             {
                 32 => "Nintendo - ",
                 218 => "CTGP - ",
@@ -162,7 +160,7 @@ namespace CTGPPopularityTracker.Commands
                 _ => $"Tracks containing \"{search}\""
             };
 
-            embed.AddField(fieldTitle, tracks);
+            embed.AddField(fieldTitle, searchTracks);
             return embed;
         }
 
@@ -177,7 +175,7 @@ namespace CTGPPopularityTracker.Commands
                 sb.Append($"**{i + 1}:** {trackList[i]}\n");
             }
 
-            if (trackList.Length > 15) sb.Append("\n*Only showing the first 25 matches. Refine your search.*");
+            if (trackList.Length > 15) sb.Append("\n*Only showing the first 15 matches. Refine your search.*");
 
             embed.AddField($"Wiki tracks containing {search}", sb.ToString());
 
