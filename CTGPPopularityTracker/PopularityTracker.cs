@@ -20,8 +20,7 @@ namespace CTGPPopularityTracker
 
         private const string CtgpTtLink = "http://tt.chadsoft.co.uk/ctgp-leaderboards.json";
         private const string NintendoTtLink = "http://tt.chadsoft.co.uk/original-track-leaderboards.json";
-        private const string CtgpWiimmFiLink = "https://wiimmfi.de/stats/track/wv/ctgp?p=std,c0,0,";
-        private const string NintendoWiimmFiLink = "https://wiimmfi.de/stats/track/wv/all?p=std,c0,0";
+        private const string WiimmFiLink = "https://wiimmfi.de/stats/track/wv/all?p=std,c0,0,";
 
         public PopularityTracker()
         {
@@ -39,14 +38,13 @@ namespace CTGPPopularityTracker
             NintendoTracks.Clear();
 
             await GetTimeTrialPopularity(NintendoTtLink, NintendoTracks);
-            await GetWiimmFiPopularity(NintendoWiimmFiLink, 32, NintendoTracks);
+            await GetWiimmFiPopularity(WiimmFiLink, 32, NintendoTracks);
             await GetTimeTrialPopularity(CtgpTtLink, CtgpTracks);
-            await GetWiimmFiPopularity(CtgpWiimmFiLink, 218, CtgpTracks);
+            await GetWiimmFiPopularity(WiimmFiLink, 218, CtgpTracks);
 
             LastUpdated = DateTime.Now;
 
             Console.WriteLine("Updated track list");
-
         }
 
         /// <summary>
@@ -150,7 +148,7 @@ namespace CTGPPopularityTracker
 
                     //Loop through the table finding the SHA1 hashes
                     var trackPossibleSha1 = new List<string>();
-                    foreach (var row2 in doc2.DocumentNode.SelectNodes("/html/body/div[5]/table/tr[position() > 1]"))
+                    foreach (var row2 in doc2.DocumentNode.SelectNodes("html/body/div[4]/table/tr[position() > 1]"))
                     {
                         if (!row2.SelectNodes("td")[0].InnerText.Contains("SHA1")) continue;
                         var hashes = row2.SelectNodes("td")[1].InnerText.Split(40);
